@@ -3,14 +3,16 @@
  * Tests the tauriApi utility functions with mocked Tauri invoke calls
  */
 
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 // Mock Tauri API
-const mockInvoke = jest.fn();
-jest.mock('@tauri-apps/api/tauri', () => ({
-  invoke: mockInvoke
+vi.mock('@tauri-apps/api/tauri', () => ({
+  invoke: vi.fn()
 }));
 
 // Import the module after mocking
 import tauriApi from '../utils/tauriApi.js';
+import { invoke as mockInvoke } from '@tauri-apps/api/tauri';
 
 describe('Tauri API Tests', () => {
   beforeEach(() => {
@@ -19,7 +21,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('System Metrics', () => {
-    test('getMetrics should call invoke with correct parameters', async () => {
+    it('getMetrics should call invoke with correct parameters', async () => {
       const mockMetrics = {
         cpu: { usage: 25.5 },
         memory: { total: 8589934592, usage_percent: 60.0 },
@@ -35,7 +37,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockMetrics);
     });
 
-    test('getMetrics should handle errors gracefully', async () => {
+    it('getMetrics should handle errors gracefully', async () => {
       const error = new Error('Failed to get metrics');
       mockInvoke.mockRejectedValue(error);
 
@@ -44,7 +46,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('AI Status', () => {
-    test('checkAiStatus should return AI status', async () => {
+    it('checkAiStatus should return AI status', async () => {
       const mockStatus = { available: true, status: 'online' };
       mockInvoke.mockResolvedValue(mockStatus);
 
@@ -54,7 +56,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockStatus);
     });
 
-    test('checkAiStatus should handle errors and return offline status', async () => {
+    it('checkAiStatus should handle errors and return offline status', async () => {
       const error = new Error('AI service unavailable');
       mockInvoke.mockRejectedValue(error);
 
@@ -65,7 +67,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('System Information', () => {
-    test('getSystemInfo should return system information', async () => {
+    it('getSystemInfo should return system information', async () => {
       const mockInfo = 'OptiAI System Optimizer v1.0.0';
       mockInvoke.mockResolvedValue(mockInfo);
 
@@ -75,7 +77,7 @@ describe('Tauri API Tests', () => {
       expect(result).toBe(mockInfo);
     });
 
-    test('getSystemProfile should return system profile', async () => {
+    it('getSystemProfile should return system profile', async () => {
       const mockProfile = {
         os_name: 'Windows',
         hostname: 'TEST-PC',
@@ -89,7 +91,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockProfile);
     });
 
-    test('collectSystemInfo should collect and return system info', async () => {
+    it('collectSystemInfo should collect and return system info', async () => {
       const mockSystemInfo = {
         os_name: 'Windows',
         hostname: 'TEST-PC',
@@ -106,7 +108,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('LLM Management', () => {
-    test('getLlmInfo should return LLM information', async () => {
+    it('getLlmInfo should return LLM information', async () => {
       const mockLlmInfo = {
         model_path: 'C:\\AppData\\OptiAI\\models\\phi-2-q4.gguf',
         model_loaded: true,
@@ -121,7 +123,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockLlmInfo);
     });
 
-    test('initLlm should initialize LLM', async () => {
+    it('initLlm should initialize LLM', async () => {
       mockInvoke.mockResolvedValue(undefined);
 
       const result = await tauriApi.initLlm();
@@ -132,7 +134,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('Directory Scanning', () => {
-    test('scanDirectory should scan specified directory', async () => {
+    it('scanDirectory should scan specified directory', async () => {
       const mockScanResult = {
         scan_id: 'scan-123',
         path: 'C:\\Test',
@@ -155,7 +157,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockScanResult);
     });
 
-    test('getScanResult should retrieve scan result by ID', async () => {
+    it('getScanResult should retrieve scan result by ID', async () => {
       const mockScanResult = {
         scan_id: 'scan-123',
         path: 'C:\\Test',
@@ -178,7 +180,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockScanResult);
     });
 
-    test('listScanResults should return list of scan IDs', async () => {
+    it('listScanResults should return list of scan IDs', async () => {
       const mockScanIds = ['scan-123', 'scan-456', 'scan-789'];
       mockInvoke.mockResolvedValue(mockScanIds);
 
@@ -190,7 +192,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('AI Suggestions', () => {
-    test('generateAiSuggestions should generate AI suggestions', async () => {
+    it('generateAiSuggestions should generate AI suggestions', async () => {
       const mockSuggestions = [
         {
           title: 'Duplicate Files Detected',
@@ -213,7 +215,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockSuggestions);
     });
 
-    test('generateOptimizationSuggestions should generate optimization suggestions', async () => {
+    it('generateOptimizationSuggestions should generate optimization suggestions', async () => {
       const mockOptimizations = [
         {
           action_type: 'delete',
@@ -230,7 +232,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockOptimizations);
     });
 
-    test('executeOptimization should execute optimization action', async () => {
+    it('executeOptimization should execute optimization action', async () => {
       const mockResult = {
         success: true,
         message: 'Optimization completed successfully',
@@ -249,7 +251,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('Process Management', () => {
-    test('getProcesses should return list of processes', async () => {
+    it('getProcesses should return list of processes', async () => {
       const mockProcesses = [
         {
           pid: 1234,
@@ -276,7 +278,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockProcesses);
     });
 
-    test('killProcess should kill process by PID', async () => {
+    it('killProcess should kill process by PID', async () => {
       const mockResult = {
         success: true,
         message: 'Process killed successfully'
@@ -291,7 +293,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('Startup Management', () => {
-    test('getStartupPrograms should return startup programs', async () => {
+    it('getStartupPrograms should return startup programs', async () => {
       const mockStartupPrograms = [
         {
           name: 'Discord',
@@ -314,7 +316,7 @@ describe('Tauri API Tests', () => {
       expect(result).toEqual(mockStartupPrograms);
     });
 
-    test('toggleStartupProgram should toggle startup program', async () => {
+    it('toggleStartupProgram should toggle startup program', async () => {
       const mockResult = {
         success: true,
         message: 'Startup program toggled successfully'
@@ -332,7 +334,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('Settings Management', () => {
-    test('saveSettings should save settings', async () => {
+    it('saveSettings should save settings', async () => {
       const mockSettings = {
         version: '1.0.0',
         theme: 'dark',
@@ -347,7 +349,7 @@ describe('Tauri API Tests', () => {
       expect(result).toBeUndefined();
     });
 
-    test('loadSettings should load settings', async () => {
+    it('loadSettings should load settings', async () => {
       const mockSettings = {
         version: '1.0.0',
         theme: 'dark',
@@ -374,7 +376,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('System Analysis', () => {
-    test('analyzeSystemMetrics should analyze system metrics', async () => {
+    it('analyzeSystemMetrics should analyze system metrics', async () => {
       const mockAnalysis = [
         {
           title: 'High CPU Usage',
@@ -399,7 +401,7 @@ describe('Tauri API Tests', () => {
   });
 
   describe('Error Handling', () => {
-    test('all functions should handle network errors gracefully', async () => {
+    it('all functions should handle network errors gracefully', async () => {
       const networkError = new Error('Network error');
       mockInvoke.mockRejectedValue(networkError);
 
@@ -409,7 +411,7 @@ describe('Tauri API Tests', () => {
       await expect(tauriApi.getProcesses()).rejects.toThrow('Network error');
     });
 
-    test('all functions should handle invalid parameters', async () => {
+    it('all functions should handle invalid parameters', async () => {
       const invalidParamError = new Error('Invalid parameter');
       mockInvoke.mockRejectedValue(invalidParamError);
 
