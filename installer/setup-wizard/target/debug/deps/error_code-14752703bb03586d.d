@@ -1,0 +1,10 @@
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\error_code-14752703bb03586d.d: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\defs.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\types.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\utils.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\posix.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\system.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\liberror_code-14752703bb03586d.rmeta: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\defs.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\types.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\utils.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\posix.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\system.rs
+
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\lib.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\defs.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\types.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\utils.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\posix.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\error-code-3.3.2\src\system.rs:

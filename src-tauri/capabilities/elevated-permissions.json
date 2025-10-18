@@ -1,0 +1,193 @@
+{
+  "identifier": "elevated-permissions",
+  "description": "Capabilities for system-level operations requiring elevated privileges",
+  "windows": {
+    "elevated": true,
+    "uac": {
+      "enabled": true,
+      "level": "requireAdministrator",
+      "uiAccess": false
+    },
+    "compatibility": {
+      "windows10": true,
+      "windows11": true
+    }
+  },
+  "permissions": {
+    "fs": {
+      "all": true,
+      "readFile": true,
+      "writeFile": true,
+      "readDir": true,
+      "copyFile": true,
+      "createDir": true,
+      "removeDir": true,
+      "removeFile": true,
+      "renameFile": true,
+      "exists": true,
+      "scope": [
+        "$HOME/**",
+        "$DOCUMENT/**",
+        "$DESKTOP/**",
+        "$DOWNLOAD/**",
+        "$PICTURE/**",
+        "$VIDEO/**",
+        "$MUSIC/**",
+        "$TEMP/**",
+        "C:\\Windows\\**",
+        "C:\\Program Files\\**",
+        "C:\\ProgramData\\**",
+        "C:\\Users\\**\\AppData\\**"
+      ]
+    },
+    "shell": {
+      "all": true,
+      "open": true,
+      "execute": true,
+      "sidecar": true,
+      "scope": [
+        {
+          "name": "backend-server",
+          "cmd": "backend-server.exe",
+          "args": ["--port", "5174", "--host", "127.0.0.1"]
+        },
+        {
+          "name": "llama-server",
+          "cmd": "llama-server.exe",
+          "args": ["-m", "phi-2-q4_k_m.gguf", "--port", "11435"]
+        }
+      ]
+    },
+    "process": {
+      "all": true,
+      "relaunch": true,
+      "exit": true,
+      "kill": true,
+      "spawn": true
+    },
+    "os": {
+      "all": true,
+      "platform": true,
+      "arch": true,
+      "version": true,
+      "family": true,
+      "locale": true,
+      "tempdir": true,
+      "homedir": true
+    },
+    "path": {
+      "all": true,
+      "resolve": true,
+      "normalize": true,
+      "join": true,
+      "dirname": true,
+      "extname": true,
+      "basename": true,
+      "isAbsolute": true
+    },
+    "http": {
+      "all": true,
+      "request": true,
+      "scope": [
+        "http://127.0.0.1:5174/**",
+        "http://localhost:5174/**",
+        "http://127.0.0.1:11435/**",
+        "http://localhost:11435/**",
+        "https://api.github.com/**",
+        "https://huggingface.co/**"
+      ]
+    },
+    "notification": {
+      "all": true,
+      "show": true,
+      "requestPermission": true
+    },
+    "dialog": {
+      "all": true,
+      "open": true,
+      "save": true,
+      "message": true,
+      "ask": true,
+      "confirm": true
+    },
+    "window": {
+      "all": true,
+      "create": true,
+      "center": true,
+      "requestUserAttention": true,
+      "setResizable": true,
+      "setMaximizable": true,
+      "setMinimizable": true,
+      "setClosable": true,
+      "setTitle": true,
+      "maximize": true,
+      "unmaximize": true,
+      "minimize": true,
+      "unminimize": true,
+      "show": true,
+      "hide": true,
+      "close": true,
+      "setDecorations": true,
+      "setAlwaysOnTop": true,
+      "setContentProtected": true,
+      "setSize": true,
+      "setMinSize": true,
+      "setMaxSize": true,
+      "setPosition": true,
+      "setFullscreen": true,
+      "setFocus": true,
+      "setIcon": true,
+      "setSkipTaskbar": true,
+      "setCursorGrab": true,
+      "setCursorVisible": true,
+      "setCursorIcon": true,
+      "setCursorPosition": true,
+      "setIgnoreCursorEvents": true,
+      "startDragging": true,
+      "print": true
+    },
+    "systemTray": {
+      "all": true,
+      "setIcon": true,
+      "setTooltip": true,
+      "setMenu": true,
+      "getIcon": true,
+      "getTooltip": true,
+      "getMenu": true
+    },
+    "globalShortcut": {
+      "all": true,
+      "register": true,
+      "unregister": true,
+      "isRegistered": true
+    },
+    "clipboard": {
+      "all": true,
+      "readText": true,
+      "writeText": true,
+      "readImage": true,
+      "writeImage": true,
+      "clear": true
+    },
+    "updater": {
+      "all": true,
+      "check": true,
+      "download": true,
+      "install": true,
+      "restart": true
+    }
+  },
+  "security": {
+    "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:5174 http://localhost:5174 http://127.0.0.1:11435 http://localhost:11435 https://api.github.com https://huggingface.co;",
+    "dangerousRemoteAssetIpcAccess": [
+      {
+        "windows": ["127.0.0.1", "localhost"]
+      }
+    ]
+  },
+  "windows": {
+    "webSecurity": false,
+    "allowRunningInsecureContent": true,
+    "experimentalFeatures": true
+  }
+}

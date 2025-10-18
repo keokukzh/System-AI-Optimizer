@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  
+  <!-- Product Information -->
+  <Product Id="*" 
+           Name="OptiAI" 
+           Language="1033" 
+           Version="1.0.0" 
+           Manufacturer="OptiAI Team" 
+           UpgradeCode="PUT-GUID-HERE">
+    
+    <!-- Package Information -->
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine"
+             Description="OptiAI - AI-Powered System Optimizer"
+             Comments="OptiAI is an intelligent system optimization tool that uses AI to analyze and optimize your computer."
+             Manufacturer="OptiAI Team" />
+    
+    <!-- Require Admin Rights -->
+    <Property Id="MSIINSTALLPERUSER" Value="1" />
+    <Property Id="ALLUSERS" Value="1" />
+    
+    <!-- Major Upgrade -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    
+    <!-- Feature Tree -->
+    <Feature Id="ProductFeature" Title="OptiAI" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+    
+    <!-- UI Configuration -->
+    <UIRef Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" />
+    
+    <!-- Custom Actions for Admin Rights -->
+    <CustomAction Id="CheckAdminRights" 
+                  BinaryKey="CheckAdminRightsBinary" 
+                  DllEntry="CheckAdminRights" 
+                  Execute="immediate" 
+                  Return="check" />
+    
+    <!-- Install Conditions -->
+    <Condition Message="This application requires administrator privileges to install.">
+      <![CDATA[Installed OR Privileged]]>
+    </Condition>
+    
+    <!-- Launch Conditions -->
+    <Condition Message="This application requires Windows 10 or later.">
+      <![CDATA[Installed OR (VersionNT >= 603)]]>
+    </Condition>
+    
+    <!-- Registry Entries -->
+    <Component Id="RegistryEntries" Guid="*">
+      <RegistryKey Root="HKLM" Key="SOFTWARE\OptiAI">
+        <RegistryValue Name="InstallPath" Type="string" Value="[INSTALLFOLDER]" />
+        <RegistryValue Name="Version" Type="string" Value="[ProductVersion]" />
+        <RegistryValue Name="InstallDate" Type="string" Value="[Date]" />
+      </RegistryKey>
+      
+      <!-- Uninstall Information -->
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]">
+        <RegistryValue Name="DisplayName" Type="string" Value="OptiAI" />
+        <RegistryValue Name="DisplayVersion" Type="string" Value="[ProductVersion]" />
+        <RegistryValue Name="Publisher" Type="string" Value="OptiAI Team" />
+        <RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLFOLDER]" />
+        <RegistryValue Name="UninstallString" Type="string" Value="[SystemFolder]msiexec.exe /x [ProductCode]" />
+        <RegistryValue Name="QuietUninstallString" Type="string" Value="[SystemFolder]msiexec.exe /x [ProductCode] /quiet" />
+        <RegistryValue Name="NoModify" Type="integer" Value="1" />
+        <RegistryValue Name="NoRepair" Type="integer" Value="1" />
+        <RegistryValue Name="EstimatedSize" Type="integer" Value="[Size]" />
+      </RegistryKey>
+    </Component>
+    
+    <!-- Application Shortcut -->
+    <Component Id="ApplicationShortcut" Guid="*">
+      <Shortcut Id="ApplicationStartMenuShortcut"
+                Directory="ApplicationProgramsFolder"
+                Name="OptiAI"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="OptiAIIcon"
+                IconIndex="0"
+                Advertise="yes" />
+      <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Start Menu Shortcut -->
+    <Component Id="StartMenuShortcut" Guid="*">
+      <Shortcut Id="StartMenuShortcut"
+                Directory="StartMenuFolder"
+                Name="OptiAI"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="OptiAIIcon"
+                IconIndex="0"
+                Advertise="yes" />
+      <RemoveFolder Id="StartMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="startmenu" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Desktop Shortcut -->
+    <Component Id="DesktopShortcut" Guid="*">
+      <Shortcut Id="DesktopShortcut"
+                Directory="DesktopFolder"
+                Name="OptiAI"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="OptiAIIcon"
+                IconIndex="0"
+                Advertise="yes" />
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- File Associations -->
+    <Component Id="FileAssociations" Guid="*">
+      <RegistryKey Root="HKCR" Key=".optiai">
+        <RegistryValue Name="" Type="string" Value="OptiAIFile" />
+      </RegistryKey>
+      <RegistryKey Root="HKCR" Key="OptiAIFile">
+        <RegistryValue Name="" Type="string" Value="OptiAI Project File" />
+        <RegistryKey Key="DefaultIcon">
+          <RegistryValue Name="" Type="string" Value="[INSTALLFOLDER]OptiAI.exe,0" />
+        </RegistryKey>
+        <RegistryKey Key="shell\open\command">
+          <RegistryValue Name="" Type="string" Value="&quot;[INSTALLFOLDER]OptiAI.exe&quot; &quot;%1&quot;" />
+        </RegistryKey>
+      </RegistryKey>
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="associations" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Windows Firewall Exception -->
+    <Component Id="FirewallException" Guid="*">
+      <util:FirewallException Id="OptiAIFirewallException"
+                             Name="OptiAI"
+                             Port="5174"
+                             Protocol="tcp"
+                             Scope="any"
+                             Profile="all"
+                             IgnoreFailure="yes" />
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="firewall" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Windows Defender Exclusion -->
+    <Component Id="DefenderExclusion" Guid="*">
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths">
+        <RegistryValue Name="[INSTALLFOLDER]" Type="string" Value="OptiAI Installation Directory" />
+      </RegistryKey>
+      <RegistryValue Root="HKCU" Key="Software\OptiAI" Name="defender" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Service Installation (if needed) -->
+    <Component Id="OptiAIService" Guid="*">
+      <File Id="OptiAIServiceExe" 
+            Name="OptiAI.Service.exe" 
+            Source="$(var.SourceDir)\OptiAI.Service.exe" 
+            KeyPath="yes" />
+      <ServiceInstall Id="OptiAIServiceInstall"
+                      Type="ownProcess"
+                      Name="OptiAIService"
+                      DisplayName="OptiAI Background Service"
+                      Description="OptiAI background optimization service"
+                      Start="auto"
+                      Account="LocalSystem"
+                      ErrorControl="normal" />
+      <ServiceControl Id="OptiAIServiceControl"
+                      Name="OptiAIService"
+                      Start="install"
+                      Stop="both"
+                      Remove="uninstall"
+                      Wait="yes" />
+    </Component>
+    
+    <!-- Custom Actions -->
+    <CustomAction Id="LaunchOptiAI" 
+                  FileKey="OptiAIExe" 
+                  ExeCommand="" 
+                  Return="asyncNoWait" />
+    
+    <CustomAction Id="WixUI_Minimal" 
+                  Value="1" />
+    
+    <!-- Install Sequence -->
+    <InstallExecuteSequence>
+      <Custom Action="CheckAdminRights" Before="CostInitialize" />
+      <LaunchConditions After="AppSearch" />
+      <RemoveExistingProducts After="InstallValidate" />
+    </InstallExecuteSequence>
+    
+    <!-- UI Sequence -->
+    <InstallUISequence>
+      <Custom Action="CheckAdminRights" Before="CostInitialize" />
+      <LaunchConditions After="AppSearch" />
+    </InstallUISequence>
+    
+  </Product>
+  
+  <!-- Directory Structure -->
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="OptiAI">
+          <Directory Id="Resources" Name="Resources" />
+          <Directory Id="Models" Name="Models" />
+          <Directory Id="Logs" Name="Logs" />
+          <Directory Id="Config" Name="Config" />
+        </Directory>
+      </Directory>
+      
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="OptiAI" />
+      </Directory>
+      
+      <!-- Desktop -->
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      
+      <!-- Start Menu Programs -->
+      <Directory Id="StartMenuFolder" Name="StartMenu" />
+    </Directory>
+  </Fragment>
+  
+  <!-- Component Groups -->
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!-- Main Application -->
+      <Component Id="OptiAIExe" Guid="*">
+        <File Id="OptiAIExe" 
+              Name="OptiAI.exe" 
+              Source="$(var.SourceDir)\OptiAI.exe" 
+              KeyPath="yes" />
+        <File Id="OptiAIIcon" 
+              Name="OptiAI.ico" 
+              Source="$(var.SourceDir)\OptiAI.ico" />
+      </Component>
+      
+      <!-- Backend Server -->
+      <Component Id="BackendServer" Guid="*">
+        <File Id="BackendServerExe" 
+              Name="backend-server.exe" 
+              Source="$(var.SourceDir)\backend-server.exe" 
+              KeyPath="yes" />
+      </Component>
+      
+      <!-- LLM Server -->
+      <Component Id="LLMServer" Guid="*">
+        <File Id="LLMServerExe" 
+              Name="llama-server.exe" 
+              Source="$(var.SourceDir)\llama-server.exe" 
+              KeyPath="yes" />
+      </Component>
+      
+      <!-- Configuration Files -->
+      <Component Id="ConfigFiles" Guid="*">
+        <File Id="ConfigFile" 
+              Name="config.json" 
+              Source="$(var.SourceDir)\config.json" 
+              KeyPath="yes" />
+        <File Id="PolicyFile" 
+              Name="policy.yaml" 
+              Source="$(var.SourceDir)\policy.yaml" />
+      </Component>
+      
+      <!-- Model Files -->
+      <Component Id="ModelFiles" Guid="*">
+        <File Id="ModelFile" 
+              Name="phi-2-q4_k_m.gguf" 
+              Source="$(var.SourceDir)\phi-2-q4_k_m.gguf" 
+              KeyPath="yes" />
+        <File Id="ModelConfig" 
+              Name="model-config.json" 
+              Source="$(var.SourceDir)\model-config.json" />
+      </Component>
+      
+      <!-- Documentation -->
+      <Component Id="Documentation" Guid="*">
+        <File Id="ReadmeFile" 
+              Name="README.txt" 
+              Source="$(var.SourceDir)\README.txt" 
+              KeyPath="yes" />
+        <File Id="LicenseFile" 
+              Name="LICENSE.txt" 
+              Source="$(var.SourceDir)\LICENSE.txt" />
+        <File Id="ChangelogFile" 
+              Name="CHANGELOG.txt" 
+              Source="$(var.SourceDir)\CHANGELOG.txt" />
+      </Component>
+      
+      <!-- Include all components -->
+      <ComponentRef Id="RegistryEntries" />
+      <ComponentRef Id="FileAssociations" />
+      <ComponentRef Id="FirewallException" />
+      <ComponentRef Id="DefenderExclusion" />
+    </ComponentGroup>
+  </Fragment>
+  
+  <!-- Icons -->
+  <Fragment>
+    <Icon Id="OptiAIIcon" SourceFile="$(var.SourceDir)\OptiAI.ico" />
+  </Fragment>
+  
+  <!-- Properties -->
+  <Fragment>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="ARPPRODUCTICON" Value="OptiAIIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/yourusername/optiai" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/yourusername/optiai" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+  </Fragment>
+  
+</Wix>

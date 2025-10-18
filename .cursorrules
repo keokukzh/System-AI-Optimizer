@@ -1,0 +1,99 @@
+# Cursor AI Rules for OptiAI Project
+
+## Project Overview
+OptiAI is an AI-powered desktop system optimizer built with React (frontend), Python FastAPI (backend), and Tauri (desktop wrapper).
+
+## Architecture Principles
+- Follow single responsibility principle - each file/class should do one thing
+- Keep files under 500 lines, split immediately if approaching 400 lines
+- Use object-oriented design with dedicated classes for each functionality
+- Favor composition over inheritance
+- Build for reuse, not just to "make it work"
+
+## Code Organization
+- UI logic -> ViewModel/Manager
+- Business logic -> Manager/Service
+- Navigation/state flow -> Coordinator
+- Never mix views and business logic directly
+- Use descriptive, intention-revealing names
+- Avoid vague names like "data", "info", "helper"
+
+## Technology Stack
+- Frontend: React + Vite + Tailwind CSS + Framer Motion
+- Backend: Python FastAPI
+- Desktop: Tauri (Rust)
+- Database: JSON files + secure vault storage
+- AI: Ollama/local LLM integration
+
+## Security & Policy
+- All actions must be validated through policy.yaml
+- Never bypass PolicyManager validation
+- No shell commands in action execution (Python stdlib only)
+- Protected paths are immutable
+- All LLM outputs must pass policy validation
+
+## Development Guidelines
+- Use TypeScript for new components (Processes.tsx, Startup.tsx pattern)
+- Prefer pure HTML/JS/CSS for UI features without external libraries
+- API communication via fetch to http://127.0.0.1:5174
+- Follow existing patterns in components/ directory
+- Maintain comprehensive undo functionality for all actions
+
+## Testing & Quality
+- Write tests for all new functionality
+- Use pytest for Python backend tests
+- Maintain test coverage above 80%
+- Run integration tests before deployment
+- Validate all schemas against JSON schemas in schemas/ directory
+
+## Performance
+- Optimize for desktop performance
+- Use lazy loading for large components
+- Implement proper error boundaries
+- Monitor memory usage in long-running operations
+- Cache API responses appropriately
+
+## File Structure
+- src/components/ - React components
+- src/pages/ - Page components (TypeScript preferred)
+- src/hooks/ - Custom React hooks
+- src/utils/ - Utility functions
+- src/context/ - React context providers
+- backend/ - Python FastAPI backend
+- src-tauri/ - Tauri desktop wrapper
+- scripts/ - Build and utility scripts
+
+## API Endpoints
+- POST /api/scan - Start filesystem scan
+- GET /api/scan/{scan_id}/status - Check scan progress
+- POST /api/optimize - Generate AI suggestions
+- POST /api/action - Execute actions with validation
+- POST /api/undo - Undo actions
+- GET /api/actions/history - Action audit log
+
+## Ports & Configuration
+- Backend API: 5174
+- Frontend Vite dev: 3001
+- Ollama LLM: 11434
+- Tauri dev: Dynamic assignment
+
+## Error Handling
+- Use proper error boundaries in React
+- Implement graceful fallbacks for external tools
+- Log all errors with context
+- Provide user-friendly error messages
+- Maintain action history for debugging
+
+## Documentation
+- Comment complex algorithms
+- Document API endpoints
+- Maintain README files
+- Update CHANGELOG for releases
+- Document security policies
+
+## Git Workflow
+- Use conventional commits
+- Create feature branches
+- Run tests before merging
+- Update documentation with changes
+- Tag releases appropriately

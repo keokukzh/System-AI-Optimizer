@@ -1,0 +1,26 @@
+[package]
+name = "optiai-setup"
+version = "1.0.0"
+description = "OptiAI Installation Setup Wizard"
+authors = ["OptiAI Team"]
+license = "MIT"
+repository = "https://github.com/optiai/optiai"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = ["api-all", "dialog-all", "fs-all", "shell-all"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+winreg = "0.52"
+zip = "0.6"
+anyhow = "1.0"
+thiserror = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

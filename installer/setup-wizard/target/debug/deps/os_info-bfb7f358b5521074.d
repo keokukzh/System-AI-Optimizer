@@ -1,0 +1,11 @@
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\os_info-bfb7f358b5521074.d: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\mod.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\winapi.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\bitness.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\info.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\os_type.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\version.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\libos_info-bfb7f358b5521074.rmeta: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\mod.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\winapi.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\bitness.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\info.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\os_type.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\version.rs
+
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\lib.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\mod.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\windows\winapi.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\bitness.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\info.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\os_type.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\os_info-3.12.0\src\version.rs:

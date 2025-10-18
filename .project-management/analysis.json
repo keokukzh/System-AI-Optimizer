@@ -1,0 +1,96 @@
+{
+  "codebase": {
+    "frontend": {
+      "files": 70,
+      "lines": 17154,
+      "components": 51,
+      "modules": 0
+    },
+    "backend": {
+      "files": 7,
+      "lines": 0,
+      "components": 0,
+      "modules": 0
+    },
+    "desktop": {
+      "files": 12313,
+      "lines": 318348,
+      "components": 0,
+      "modules": 47
+    },
+    "total": {
+      "files": 12390,
+      "lines": 335502
+    }
+  },
+  "dependencies": {
+    "frontend": [
+      "@tauri-apps/api",
+      "framer-motion",
+      "lucide-react",
+      "react",
+      "react-dom",
+      "recharts"
+    ],
+    "backend": [],
+    "desktop": [
+      "tauri",
+      "serde",
+      "serde_json",
+      "tokio",
+      "sysinfo",
+      "walkdir",
+      "winreg",
+      "anyhow",
+      "thiserror",
+      "chrono",
+      "reqwest",
+      "lazy_static"
+    ],
+    "total": 18
+  },
+  "tests": {
+    "unit": {
+      "files": 1,
+      "coverage": 0
+    },
+    "integration": {
+      "files": 1,
+      "coverage": 0
+    },
+    "e2e": {
+      "files": 0,
+      "coverage": 0
+    },
+    "total": {
+      "files": 2,
+      "coverage": 0
+    }
+  },
+  "documentation": {
+    "readme": true,
+    "changelog": true,
+    "api": false,
+    "architecture": false,
+    "deployment": false,
+    "testing": false,
+    "total": 2
+  },
+  "build": {
+    "frontend": true,
+    "backend": false,
+    "desktop": true,
+    "docker": false,
+    "makefile": true,
+    "scripts": true,
+    "total": 4
+  },
+  "deployment": {
+    "ci": true,
+    "docker": false,
+    "kubernetes": false,
+    "terraform": false,
+    "ansible": false,
+    "total": 1
+  }
+}

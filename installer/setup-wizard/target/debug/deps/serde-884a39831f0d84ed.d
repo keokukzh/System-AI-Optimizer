@@ -1,0 +1,14 @@
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\serde-884a39831f0d84ed.d: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\build\serde-a9c69f4a8c724b9e\out/private.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\libserde-884a39831f0d84ed.rlib: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\build\serde-a9c69f4a8c724b9e\out/private.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\libserde-884a39831f0d84ed.rmeta: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\build\serde-a9c69f4a8c724b9e\out/private.rs
+
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\build\serde-a9c69f4a8c724b9e\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\keoku\\Desktop\\System-AI-Optimizer\\installer\\setup-wizard\\target\\debug\\build\\serde-a9c69f4a8c724b9e\\out

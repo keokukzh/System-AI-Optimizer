@@ -1,0 +1,10 @@
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\windows_tokens-bb627ea29ac2f852.d: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\to_tokens.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\token_stream.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\runtime.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\libwindows_tokens-bb627ea29ac2f852.rlib: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\to_tokens.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\token_stream.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\runtime.rs
+
+C:\Users\keoku\Desktop\System-AI-Optimizer\installer\setup-wizard\target\debug\deps\libwindows_tokens-bb627ea29ac2f852.rmeta: C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\lib.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\to_tokens.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\token_stream.rs C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\runtime.rs
+
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\lib.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\to_tokens.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\token_stream.rs:
+C:\Users\keoku\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\windows-tokens-0.39.0\src\runtime.rs:

@@ -1,0 +1,22 @@
+version: 1
+allowed_actions:
+  - send_to_trash
+  - move
+  - compress
+  - ignore
+constraints:
+  max_batch: 1000
+  max_single_delete_bytes: 21474836480   # 20 GB ohne Extra-Confirm
+  require_confirm: true
+  quarantine_ttl_days: 7
+  protect_paths:
+    - "/Windows"
+    - "/Program Files"
+    - "/System"
+    - "/usr"
+    - "/etc"
+    - "/Library"
+    - "/System/Volumes/Data"
+extensions:
+  duplicate_min_bytes: 1048576
+  large_file_threshold: 1073741824
