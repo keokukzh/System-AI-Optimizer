@@ -3,10 +3,58 @@
  * Centralized configuration for all environment variables and API endpoints
  */
 
+// Detect if running in Tauri
+const isTauri = typeof window !== 'undefined' && window.__TAURI__
+
+// Centralized API configuration
+export const API_CONFIG = {
+  BACKEND_PORT: 5175,  // Standardized to 5175
+  BACKEND_HOST: '127.0.0.1',
+  get BASE_URL() {
+    // Always use 127.0.0.1:5175 for backend
+    return `http://127.0.0.1:5175`
+  },
+  TIMEOUT: 5000,
+  RETRY_ATTEMPTS: 3,
+  IS_TAURI: isTauri
+}
+
+// Port conflict detection and auto-fallback
+export const detectPortConflict = async () => {
+  const testPort = async (port) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/health`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(1000)
+      })
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+  
+  // Test primary port first
+  if (await testPort(API_CONFIG.BACKEND_PORT)) {
+    return API_CONFIG.BACKEND_PORT
+  }
+  
+  // Try fallback ports
+  const fallbackPorts = [5176, 5177, 5178, 5179]
+  for (const port of fallbackPorts) {
+    if (await testPort(port)) {
+      console.warn(`Backend found on fallback port ${port}`)
+      API_CONFIG.BACKEND_PORT = port
+      return port
+    }
+  }
+  
+  throw new Error('Backend not found on any port')
+}
+
 // Default configuration
 const defaultConfig = {
   // API Configuration
-  API_BASE_URL: 'http://127.0.0.1:5174',
+  API_BASE_URL: API_CONFIG.BASE_URL,
   API_TIMEOUT: 30000,
   
   // Development Configuration
@@ -15,7 +63,7 @@ const defaultConfig = {
   
   // AI/LLM Configuration
   LLM_SERVER_URL: 'http://127.0.0.1:11434',
-  LLM_MODEL: 'phi3-mini-dev',
+  LLM_MODEL: 'qwen2.5-coder:latest',
   LLM_TIMEOUT: 60000,
   
   // Security Configuration
@@ -71,64 +119,64 @@ const config = {
   BUILD_TIMESTAMP: import.meta.env.VITE_BUILD_TIMESTAMP || defaultConfig.BUILD_TIMESTAMP
 }
 
-// API Endpoints
+// API Endpoints - Use API_CONFIG.BASE_URL for dynamic Tauri detection
 export const API_ENDPOINTS = {
   // System
-  SYSTEM_INFO: `${config.API_BASE_URL}/api/system/info`,
-  METRICS: `${config.API_BASE_URL}/api/metrics`,
+  SYSTEM_INFO: `${API_CONFIG.BASE_URL}/api/system/info`,
+  METRICS: `${API_CONFIG.BASE_URL}/api/metrics`,
   
   // Scanning
-  SCAN: `${config.API_BASE_URL}/api/scan`,
-  SCAN_STATUS: (scanId) => `${config.API_BASE_URL}/api/scan/${scanId}/status`,
+  SCAN: `${API_CONFIG.BASE_URL}/api/scan`,
+  SCAN_STATUS: (scanId) => `${API_CONFIG.BASE_URL}/api/scan/${scanId}/status`,
   
   // AI & Optimization
-  OPTIMIZE: `${config.API_BASE_URL}/api/optimize`,
-  AI_STATUS: `${config.API_BASE_URL}/api/ai/status`,
-  AI_TOOLS_SUGGEST: `${config.API_BASE_URL}/api/ai/tools/suggest`,
+  OPTIMIZE: `${API_CONFIG.BASE_URL}/api/optimize`,
+  AI_STATUS: `${API_CONFIG.BASE_URL}/api/ai/status`,
+  AI_TOOLS_SUGGEST: `${API_CONFIG.BASE_URL}/api/ai/tools/suggest`,
   
   // Actions
-  ACTION: `${config.API_BASE_URL}/api/action`,
-  ACTIONS_HISTORY: `${config.API_BASE_URL}/api/actions/history`,
-  ACTIONS_UNDOABLE: `${config.API_BASE_URL}/api/actions/undoable`,
-  UNDO: `${config.API_BASE_URL}/api/undo`,
+  ACTION: `${API_CONFIG.BASE_URL}/api/action`,
+  ACTIONS_HISTORY: `${API_CONFIG.BASE_URL}/api/actions/history`,
+  ACTIONS_UNDOABLE: `${API_CONFIG.BASE_URL}/api/actions/undoable`,
+  UNDO: `${API_CONFIG.BASE_URL}/api/undo`,
   
   // Policy
-  POLICY_VALIDATE: `${config.API_BASE_URL}/api/policy/validate`,
+  POLICY_VALIDATE: `${API_CONFIG.BASE_URL}/api/policy/validate`,
   
   // Vault
-  VAULT_STATUS: `${config.API_BASE_URL}/api/vault/status`,
-  VAULT_LIST: `${config.API_BASE_URL}/api/vault/list`,
-  VAULT_UNLOCK: `${config.API_BASE_URL}/api/vault/unlock`,
-  VAULT_LOCK: `${config.API_BASE_URL}/api/vault/lock`,
-  VAULT_SET: `${config.API_BASE_URL}/api/vault/set`,
-  VAULT_GET: `${config.API_BASE_URL}/api/vault/get`,
-  VAULT_REMOVE: `${config.API_BASE_URL}/api/vault/remove`,
+  VAULT_STATUS: `${API_CONFIG.BASE_URL}/api/vault/status`,
+  VAULT_LIST: `${API_CONFIG.BASE_URL}/api/vault/list`,
+  VAULT_UNLOCK: `${API_CONFIG.BASE_URL}/api/vault/unlock`,
+  VAULT_LOCK: `${API_CONFIG.BASE_URL}/api/vault/lock`,
+  VAULT_SET: `${API_CONFIG.BASE_URL}/api/vault/set`,
+  VAULT_GET: `${API_CONFIG.BASE_URL}/api/vault/get`,
+  VAULT_REMOVE: `${API_CONFIG.BASE_URL}/api/vault/remove`,
   
   // Process Management
-  PROCESS_LIST: `${config.API_BASE_URL}/api/process/list`,
-  PROCESS_STATS: `${config.API_BASE_URL}/api/process/stats`,
-  PROCESS_TERMINATE: `${config.API_BASE_URL}/api/process/terminate`,
-  PROCESS_PRIORITY: `${config.API_BASE_URL}/api/process/priority`,
+  PROCESS_LIST: `${API_CONFIG.BASE_URL}/api/process/list`,
+  PROCESS_STATS: `${API_CONFIG.BASE_URL}/api/process/stats`,
+  PROCESS_TERMINATE: `${API_CONFIG.BASE_URL}/api/process/terminate`,
+  PROCESS_PRIORITY: `${API_CONFIG.BASE_URL}/api/process/priority`,
   
   // Startup Management
-  STARTUP_STATUS: `${config.API_BASE_URL}/api/startup/status`,
-  STARTUP_LIST: `${config.API_BASE_URL}/api/startup/list`,
-  STARTUP_ENABLE: `${config.API_BASE_URL}/api/startup/enable`,
-  STARTUP_DISABLE: `${config.API_BASE_URL}/api/startup/disable`,
-  STARTUP_REMOVE: `${config.API_BASE_URL}/api/startup/remove`,
-  STARTUP_RESTORE: `${config.API_BASE_URL}/api/startup/restore`,
+  STARTUP_STATUS: `${API_CONFIG.BASE_URL}/api/startup/status`,
+  STARTUP_LIST: `${API_CONFIG.BASE_URL}/api/startup/list`,
+  STARTUP_ENABLE: `${API_CONFIG.BASE_URL}/api/startup/enable`,
+  STARTUP_DISABLE: `${API_CONFIG.BASE_URL}/api/startup/disable`,
+  STARTUP_REMOVE: `${API_CONFIG.BASE_URL}/api/startup/remove`,
+  STARTUP_RESTORE: `${API_CONFIG.BASE_URL}/api/startup/restore`,
   
   // Installer
-  INSTALLER_APPS: `${config.API_BASE_URL}/api/installer/apps`,
-  INSTALLER_GITHUB: `${config.API_BASE_URL}/api/installer/github`,
-  INSTALLER_LAUNCH: `${config.API_BASE_URL}/api/installer/launch`,
-  INSTALLER_APP: (appId) => `${config.API_BASE_URL}/api/installer/app/${appId}`,
+  INSTALLER_APPS: `${API_CONFIG.BASE_URL}/api/installer/apps`,
+  INSTALLER_GITHUB: `${API_CONFIG.BASE_URL}/api/installer/github`,
+  INSTALLER_LAUNCH: `${API_CONFIG.BASE_URL}/api/installer/launch`,
+  INSTALLER_APP: (appId) => `${API_CONFIG.BASE_URL}/api/installer/app/${appId}`,
   
   // License
-  LICENSE_STATUS: `${config.API_BASE_URL}/api/license/status`,
-  LICENSE_INFO: `${config.API_BASE_URL}/api/license/info`,
-  LICENSE_ACTIVATE: `${config.API_BASE_URL}/api/license/activate`,
-  LICENSE_DEACTIVATE: `${config.API_BASE_URL}/api/license/deactivate`
+  LICENSE_STATUS: `${API_CONFIG.BASE_URL}/api/license/status`,
+  LICENSE_INFO: `${API_CONFIG.BASE_URL}/api/license/info`,
+  LICENSE_ACTIVATE: `${API_CONFIG.BASE_URL}/api/license/activate`,
+  LICENSE_DEACTIVATE: `${API_CONFIG.BASE_URL}/api/license/deactivate`
 }
 
 // Export configuration

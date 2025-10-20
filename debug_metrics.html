@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Metrics</title>
+</head>
+<body>
+    <h1>OptiAI Metrics Debug</h1>
+    <div id="status">Loading...</div>
+    <div id="data"></div>
+    <button onclick="testMetrics()">Test Metrics API</button>
+    
+    <script>
+        async function testMetrics() {
+            const statusDiv = document.getElementById('status');
+            const dataDiv = document.getElementById('data');
+            
+            try {
+                statusDiv.textContent = 'Fetching...';
+                const response = await fetch('http://127.0.0.1:5175/api/metrics');
+                const data = await response.json();
+                
+                statusDiv.textContent = 'Success!';
+                dataDiv.innerHTML = `
+                    <h3>Raw API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <h3>Extracted Metrics:</h3>
+                    <p>CPU: ${Math.round(data.cpu_percent || 0)}%</p>
+                    <p>Memory: ${Math.round(data.memory_percent || 0)}%</p>
+                    <p>Disk: ${Math.round(data.disk_percent || 0)}%</p>
+                `;
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                dataDiv.textContent = error.stack;
+            }
+        }
+        
+        // Auto-test on load
+        testMetrics();
+    </script>
+</body>
+</html>

@@ -160,8 +160,12 @@ export const CACHE_CONFIG = {
     key: 'system-info'
   },
   'metrics': {
-    ttl: 30 * 1000, // 30 seconds
+    ttl: 10 * 1000, // 10 seconds for real-time data
     key: 'metrics'
+  },
+  'dashboard-metrics': {
+    ttl: 10 * 1000, // 10 seconds for real-time data
+    key: 'dashboard-metrics'
   },
   'scan-results': {
     ttl: 10 * 60 * 1000, // 10 minutes

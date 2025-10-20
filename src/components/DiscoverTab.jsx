@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Search, Download, ExternalLink, FileText, AlertTriangle, CheckCircle } from 'lucide-react'
+import { API_CONFIG } from '../config/environment'
 
 const DiscoverTab = ({ onInstallApp }) => {
   const [query, setQuery] = useState('')
@@ -14,7 +15,7 @@ const DiscoverTab = ({ onInstallApp }) => {
     setError('')
     
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/ai/tools/suggest', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/ai/tools/suggest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: query.trim() })
@@ -63,12 +64,35 @@ const DiscoverTab = ({ onInstallApp }) => {
   }
 
   const handleInstall = async (suggestion) => {
-    if (suggestion.type === 'github') {
-      // Install GitHub repository
-      onInstallApp(suggestion.url)
-    } else {
-      // For other types, open URL
-      window.open(suggestion.url, '_blank')
+    try {
+      setIsLoading(true)
+      setError('')
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/installer/github`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          repo_url: suggestion.url,
+          install_path: '' // Let the backend choose the path
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        // Show success message
+        setError('') // Clear any previous errors
+        alert(`Successfully installed ${suggestion.name}!`)
+      } else {
+        setError(data.error || 'Installation failed')
+      }
+    } catch (err) {
+      setError(`Installation failed: ${err.message}`)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -147,7 +171,7 @@ const DiscoverTab = ({ onInstallApp }) => {
 
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span>Source:</span>
+                    <span>Repository:</span>
                     <a
                       href={suggestion.url}
                       target="_blank"
@@ -158,36 +182,27 @@ const DiscoverTab = ({ onInstallApp }) => {
                     </a>
                   </div>
 
-                  {suggestion.install && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      <span>Install:</span> {suggestion.install.description}
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                    <span>🔧 {suggestion.type || 'github'}</span>
+                    <span>⚠️ {suggestion.risk || 'unknown'} risk</span>
+                  </div>
                 </div>
 
                 <div className="flex space-x-2 mt-4">
                   <button
                     onClick={() => handleInstall(suggestion)}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 flex items-center justify-center space-x-1"
+                    disabled={isLoading}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
                   >
-                    {suggestion.type === 'github' ? (
-                      <>
-                        <Download className="w-4 h-4" />
-                        <span>Install</span>
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-4 h-4" />
-                        <span>Open</span>
-                      </>
-                    )}
+                    <Download className="w-4 h-4" />
+                    <span>Install</span>
                   </button>
                   
                   <button
                     onClick={() => window.open(suggestion.url, '_blank')}
                     className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <FileText className="w-4 h-4" />
+                    <ExternalLink className="w-4 h-4" />
                   </button>
                 </div>
               </div>

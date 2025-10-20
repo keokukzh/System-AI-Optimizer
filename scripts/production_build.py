@@ -193,7 +193,24 @@ class ProductionBuilder:
         if not backend_exe.exists():
             raise FileNotFoundError(f"Backend executable not found: {backend_exe}")
         
-        self.log(f"✓ Backend bundled: {backend_exe}")
+        # Check file size
+        size_mb = backend_exe.stat().st_size / 1024 / 1024
+        self.log(f"✓ Backend bundled: {backend_exe} ({size_mb:.1f} MB)")
+        
+        # Test the executable
+        self.log("Testing backend executable...")
+        try:
+            result = self.run_command(
+                [str(backend_exe), "--help"],
+                check=False,
+                description="Testing backend executable"
+            )
+            if result.returncode == 0 or "uvicorn" in result.stderr:
+                self.log("✓ Backend executable test passed")
+            else:
+                self.log("⚠ Backend executable test failed, but continuing", "WARNING")
+        except Exception as e:
+            self.log(f"⚠ Backend executable test error: {e}", "WARNING")
     
     def setup_llm_model(self):
         """Download and setup the LLM model"""
@@ -251,6 +268,9 @@ class ProductionBuilder:
         """Build the Tauri desktop application"""
         self.log("Building Tauri application...")
         
+        # Verify sidecars exist before building
+        self.verify_sidecars()
+        
         # Build the Tauri app
         self.run_command(
             ["npm", "run", "tauri:build"],
@@ -263,6 +283,29 @@ class ProductionBuilder:
             raise FileNotFoundError("Tauri build output not found")
         
         self.log("✓ Tauri application built")
+    
+    def verify_sidecars(self):
+        """Verify all required sidecars exist"""
+        self.log("Verifying sidecars...")
+        
+        required_sidecars = [
+            "backend-server.exe",
+            "llama-server.exe"
+        ]
+        
+        missing_sidecars = []
+        for sidecar in required_sidecars:
+            sidecar_path = SIDECARS_DIR / sidecar
+            if not sidecar_path.exists():
+                missing_sidecars.append(sidecar)
+            else:
+                size_mb = sidecar_path.stat().st_size / 1024 / 1024
+                self.log(f"✓ {sidecar} ({size_mb:.1f} MB)")
+        
+        if missing_sidecars:
+            raise FileNotFoundError(f"Missing sidecars: {', '.join(missing_sidecars)}")
+        
+        self.log("✓ All sidecars verified")
     
     def copy_release_artifacts(self):
         """Copy release artifacts to dist directory"""

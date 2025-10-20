@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   clearScreen: false,
   server: {
-    port: 3001,
+    port: 3002,
     host: true,
     strictPort: false,
   },
@@ -14,5 +14,15 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['framer-motion', 'lucide-react'],
+          'charts': ['recharts']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   }
 });

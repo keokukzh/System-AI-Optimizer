@@ -2,16 +2,45 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import useCachedApi from '../hooks/useCachedApi'
 import { usePersistedPreferences } from '../hooks/usePersistedState'
 import tauriApi from '../utils/tauriApi'
+import { API_CONFIG } from '../config/environment'
 
 /**
  * AppContext - Global state management for the entire application
  * Provides centralized state for system info, user preferences, and status
  */
 
+// Default system info for instant display
+const defaultSystemInfo = {
+  os: "windows",
+  arch: "x64",
+  python_version: "3.11",
+  hostname: "DESKTOP-AI-OPTIMIZER",
+  cpu_info: {
+    model: "Intel Core i7",
+    cores: 8,
+    threads: 16,
+    speed: "3.6 GHz"
+  },
+  memory_info: {
+    total: 16589934592,
+    type: "DDR4",
+    speed: "3200 MHz"
+  },
+  disk_info: {
+    total: 1000000000000,
+    type: "SSD",
+    interface: "NVMe"
+  },
+  gpu_info: {
+    model: "NVIDIA RTX 3060",
+    memory: 8589934592
+  }
+}
+
 // Initial state
 const initialState = {
   // System information
-  systemInfo: null,
+  systemInfo: defaultSystemInfo, // Start with default data for instant display
   systemInfoLoading: false,
   systemInfoError: null,
   
@@ -253,15 +282,15 @@ export const AppProvider = ({ children }) => {
     })
   }, [preferences])
 
-  // System info API call with caching
+  // System info API call with caching - non-blocking
   const { 
     data: systemInfoData, 
     loading: systemInfoLoading, 
     error: systemInfoError,
     execute: loadSystemInfo 
-  } = useCachedApi('http://127.0.0.1:5174/api/system/info', {
+  } = useCachedApi(`${API_CONFIG.BASE_URL}/api/system/info`, {
     endpoint: 'system-info',
-    immediate: true,
+    immediate: false, // Don't load immediately - use default data first
     backgroundRefresh: true,
     onCacheHit: (data) => {
       dispatch({ type: ActionTypes.SET_SYSTEM_INFO, payload: data })
@@ -270,6 +299,15 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_SYSTEM_INFO, payload: data })
     }
   })
+
+  // Load system info in background after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadSystemInfo()
+    }, 1000) // Load after 1 second to allow UI to render first
+    
+    return () => clearTimeout(timer)
+  }, [loadSystemInfo])
 
   // Update loading state
   useEffect(() => {

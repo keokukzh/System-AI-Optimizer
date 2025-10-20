@@ -1,5 +1,6 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug, Wifi, WifiOff, Server, Settings } from 'lucide-react';
+import { API_CONFIG } from '../config/environment';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -8,7 +9,9 @@ class ErrorBoundary extends React.Component {
       hasError: false, 
       error: null, 
       errorInfo: null,
-      retryCount: 0 
+      retryCount: 0,
+      backendStatus: 'checking',
+      connectionTest: null
     };
   }
 
@@ -25,6 +28,9 @@ class ErrorBoundary extends React.Component {
       error: error,
       errorInfo: errorInfo
     });
+
+    // Check backend connection status
+    this.checkBackendConnection();
 
     // Log to external service if available
     this.logErrorToService(error, errorInfo);
@@ -64,13 +70,44 @@ class ErrorBoundary extends React.Component {
     window.location.href = '/';
   };
 
+  checkBackendConnection = async () => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/ai/status`, {
+        method: 'GET',
+        timeout: 5000
+      });
+      
+      if (response.ok) {
+        this.setState({ 
+          backendStatus: 'connected',
+          connectionTest: 'Backend is responding correctly'
+        });
+      } else {
+        this.setState({ 
+          backendStatus: 'error',
+          connectionTest: `Backend returned status: ${response.status}`
+        });
+      }
+    } catch (error) {
+      this.setState({ 
+        backendStatus: 'disconnected',
+        connectionTest: `Connection failed: ${error.message}`
+      });
+    }
+  };
+
+  handleTestConnection = () => {
+    this.setState({ backendStatus: 'checking' });
+    this.checkBackendConnection();
+  };
+
   render() {
     if (this.state.hasError) {
-      const { error, retryCount } = this.state;
+      const { error, retryCount, backendStatus, connectionTest } = this.state;
       
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <div className="max-w-lg w-full bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
@@ -83,6 +120,25 @@ class ErrorBoundary extends React.Component {
               {this.getUserFriendlyMessage(error)}
             </p>
 
+            {/* Backend Connection Status */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-700">Backend Connection</h3>
+                <div className="flex items-center">
+                  {backendStatus === 'connected' && <Wifi className="w-4 h-4 text-green-500" />}
+                  {backendStatus === 'disconnected' && <WifiOff className="w-4 h-4 text-red-500" />}
+                  {backendStatus === 'checking' && <RefreshCw className="w-4 h-4 text-yellow-500 animate-spin" />}
+                  {backendStatus === 'error' && <Server className="w-4 h-4 text-orange-500" />}
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mb-2">
+                {connectionTest || 'Checking connection...'}
+              </p>
+              <p className="text-xs text-gray-500">
+                Backend URL: {API_CONFIG.BASE_URL}
+              </p>
+            </div>
+
             <div className="space-y-3">
               <button
                 onClick={this.handleRetry}
@@ -91,6 +147,15 @@ class ErrorBoundary extends React.Component {
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {retryCount >= 3 ? 'Max retries reached' : 'Try Again'}
+              </button>
+
+              <button
+                onClick={this.handleTestConnection}
+                className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                disabled={backendStatus === 'checking'}
+              >
+                <Server className="w-4 h-4 mr-2" />
+                Test Backend Connection
               </button>
               
               <button
@@ -119,6 +184,17 @@ class ErrorBoundary extends React.Component {
                 </div>
               </details>
             )}
+
+            {/* Troubleshooting Tips */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Troubleshooting Tips:</h4>
+              <ul className="text-xs text-blue-800 space-y-1">
+                <li>• Ensure the backend server is running on port 8080</li>
+                <li>• Check if firewall is blocking the connection</li>
+                <li>• Try restarting the backend server</li>
+                <li>• Verify the backend URL in settings</li>
+              </ul>
+            </div>
 
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">

@@ -7,10 +7,23 @@ import { HardDrive, MemoryStick, Cpu, Activity } from 'lucide-react'
  * Optimized layout with professional styling
  */
 const SystemMetrics = ({ metrics }) => {
-  // Extract metrics from the nested structure
-  const diskUsage = metrics?.metrics?.disk || metrics?.disk || { percent: 0, used: 0, total: 0, free: 0 }
-  const memoryUsage = metrics?.metrics?.memory || metrics?.memory || { percent: 0, used: 0, total: 0, available: 0 }
-  const cpuUsage = metrics?.metrics?.cpu || metrics?.cpu || { percent: 0, count: 0 }
+  // Extract metrics from the nested structure or flat structure
+  const diskUsage = metrics?.metrics?.disk || metrics?.disk || { 
+    percent: metrics?.disk_percent || 0, 
+    used: metrics?.disk?.used || 0, 
+    total: metrics?.disk?.total || 0, 
+    free: metrics?.disk?.free || 0 
+  }
+  const memoryUsage = metrics?.metrics?.memory || metrics?.memory || { 
+    percent: metrics?.memory_percent || 0, 
+    used: metrics?.memory?.used || 0, 
+    total: metrics?.memory?.total || 0, 
+    available: metrics?.memory?.available || 0 
+  }
+  const cpuUsage = metrics?.metrics?.cpu || metrics?.cpu || { 
+    percent: metrics?.cpu_percent || 0, 
+    count: metrics?.cpu?.cores || 0 
+  }
 
   // Format bytes to GB
   const formatBytes = (bytes) => {

@@ -10,7 +10,7 @@ const ScanDropdown = ({ onStartScan, isScanning, scanProgress }) => {
       label: 'Quick Scan (Home)',
       description: 'Scan user home directory',
       icon: Home,
-      paths: ['/home', 'C:\\Users'],
+      paths: ['C:\\Users'],
       estimatedTime: '1-2 min'
     },
     {
@@ -18,7 +18,7 @@ const ScanDropdown = ({ onStartScan, isScanning, scanProgress }) => {
       label: 'Full System Scan',
       description: 'Scan all drives and directories',
       icon: HardDrive,
-      paths: ['/'],
+      paths: ['C:\\'],
       estimatedTime: '5-10 min'
     },
     {

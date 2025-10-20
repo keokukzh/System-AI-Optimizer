@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "hooks": {
+    "automation": {
+      "telegram-detailed-notifications": {
+        "events": ["build", "deploy", "test"],
+        "template": "detailed",
+        "enabled": true
+      },
+      "build-on-change": {
+        "patterns": ["src/**/*", "backend/**/*"],
+        "command": "npm run build",
+        "debounce": 1000
+      }
+    },
+    "pre-tool": {
+      "backup-before-edit": {
+        "enabled": true,
+        "backupDir": ".backups",
+        "maxBackups": 10
+      },
+      "update-search-year": {
+        "enabled": true,
+        "files": ["**/*.{js,ts,py}"]
+      }
+    },
+    "post-tool": {
+      "run-tests-after-changes": {
+        "enabled": true,
+        "patterns": ["src/**/*.{js,ts}", "backend/**/*.py"],
+        "command": "npm test"
+      },
+      "format-python-files": {
+        "enabled": true,
+        "patterns": ["**/*.py"],
+        "command": "black"
+      }
+    },
+    "git-workflow": {
+      "auto-git-add": {
+        "enabled": true,
+        "patterns": ["src/**/*", "backend/**/*"]
+      },
+      "smart-commit": {
+        "enabled": true,
+        "useAI": true,
+        "template": "conventional"
+      }
+    }
+  }
+}

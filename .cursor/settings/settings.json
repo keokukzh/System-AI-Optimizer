@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "settings": {
+    "environment": {
+      "performance-optimization": {
+        "enabled": true,
+        "monitoring": {
+          "cpu": true,
+          "memory": true,
+          "disk": true
+        },
+        "autoOptimize": true
+      },
+      "development-utils": {
+        "enabled": true,
+        "features": [
+          "auto-formatting",
+          "lint-on-save",
+          "type-checking"
+        ]
+      }
+    },
+    "statusline": {
+      "context-monitor": {
+        "enabled": true,
+        "showGitInfo": true,
+        "showEnvInfo": true
+      },
+      "colorful-statusline": {
+        "enabled": true,
+        "theme": "modern"
+      },
+      "vercel-deployment-monitor": {
+        "enabled": true,
+        "refreshInterval": 30
+      }
+    },
+    "mcp": {
+      "disable-risky-servers": true,
+      "enable-all-project-servers": false,
+      "serverTimeout": 30000
+    },
+    "permissions": {
+      "development-mode": true,
+      "allow-git-operations": true,
+      "allow-npm-commands": true,
+      "additional-directories": [
+        "src",
+        "backend",
+        "scripts"
+      ]
+    }
+  }
+}

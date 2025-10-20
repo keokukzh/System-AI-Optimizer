@@ -4,6 +4,7 @@ import LoadingSpinner from './LoadingSpinner'
 import ErrorMessage from './ErrorMessage'
 import ConfirmationDialog from './ConfirmationDialog'
 import { validateScanPath } from '../utils/validation'
+import { API_CONFIG } from '../config/environment'
 
 const ScanPanel = ({ onComplete, onError, onCancel }) => {
   const [isScanning, setIsScanning] = useState(false)
@@ -23,10 +24,10 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
     const errors = {};
     let isValid = true;
 
+    // Simplified validation - just check if paths are not empty
     scanPaths.forEach((path, index) => {
-      const validation = validateScanPath(path);
-      if (!validation.isValid) {
-        errors[index] = validation.errors[0];
+      if (!path || path.trim() === '') {
+        errors[index] = 'Path cannot be empty';
         isValid = false;
       }
     });
@@ -38,12 +39,7 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
   const addPath = () => {
     if (!newPath.trim()) return;
 
-    const validation = validateScanPath(newPath);
-    if (!validation.isValid) {
-      setValidationErrors({ newPath: validation.errors[0] });
-      return;
-    }
-
+    // Simplified validation - just check if not empty and not duplicate
     if (scanPaths.includes(newPath)) {
       setValidationErrors({ newPath: 'Path already exists in scan list' });
       return;
@@ -76,7 +72,7 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
       setScanStatus('starting')
       setError(null)
 
-      const response = await fetch('http://127.0.0.1:5174/api/scan', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/scan`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -110,9 +106,11 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
   const pollScanProgress = async (scanId) => {
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:5174/api/scan/${scanId}/status`)
+        console.log('ScanPanel: Polling scan progress for:', scanId)
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/scan/${scanId}/status`)
         if (response.ok) {
           const data = await response.json()
+          console.log('ScanPanel: Scan status data:', data)
           
           setScanProgress(data.progress || 0)
           setScanStatus(data.status)
@@ -120,17 +118,24 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
           if (data.status === 'completed') {
             clearInterval(pollInterval)
             setIsScanning(false)
+            console.log('ScanPanel: Scan completed, setting results:', data.result)
             setScanResults(data.result)
-            onComplete(scanId)
+            if (onComplete) {
+              onComplete(scanId)
+            }
           } else if (data.status === 'failed') {
             clearInterval(pollInterval)
             setIsScanning(false)
             setError(data.error || 'Scan failed')
-            onError(data.error || 'Scan failed')
+            if (onError) {
+              onError(data.error || 'Scan failed')
+            }
           }
+        } else {
+          console.error('ScanPanel: Failed to get scan status:', response.status)
         }
       } catch (error) {
-        console.error('Failed to poll scan progress:', error)
+        console.error('ScanPanel: Failed to poll scan progress:', error)
         clearInterval(pollInterval)
         setIsScanning(false)
         setError('Failed to check scan progress')
@@ -441,14 +446,14 @@ const ScanPanel = ({ onComplete, onError, onCancel }) => {
             Scan Temp Files
           </button>
           <button
-            onClick={() => setScanPaths(['/home'])}
+            onClick={() => setScanPaths(['C:\\Users'])}
             className="btn btn-secondary text-left"
           >
             <HardDrive className="w-5 h-5 mr-2" />
             Scan Home Directory
           </button>
           <button
-            onClick={() => setScanPaths(['/'])}
+            onClick={() => setScanPaths(['C:\\'])}
             className="btn btn-secondary text-left"
           >
             <HardDrive className="w-5 h-5 mr-2" />

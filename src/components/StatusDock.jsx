@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Cpu, MemoryStick, HardDrive, Activity } from 'lucide-react'
-import useCachedApi from '../hooks/useCachedApi'
+import { API_CONFIG } from '../config/environment'
 
 const StatusDock = () => {
-  // Use cached API with reduced polling frequency
-  const { 
-    data: metricsData, 
-    loading, 
-    error, 
-    fromCache,
-    refresh 
-  } = useCachedApi('http://127.0.0.1:5174/api/metrics', {
-    endpoint: 'metrics',
-    backgroundRefresh: true,
-    deduplicate: true
-  })
+  // Direct fetch for debugging
+  const [metricsData, setMetricsData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const [metrics, setMetrics] = useState({
     cpu: 0,
@@ -23,31 +15,87 @@ const StatusDock = () => {
     disk: 0
   })
 
+  // Direct fetch function
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log('StatusDock: Fetching metrics from:', `${API_CONFIG.BASE_URL}/api/metrics`)
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/metrics`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      console.log('StatusDock: Received data:', data)
+      setMetricsData(data)
+      
+      // Update metrics immediately
+      const newMetrics = {
+        cpu: Math.round(data.cpu_percent || 0),
+        memory: Math.round(data.memory_percent || 0),
+        disk: Math.round(data.disk_percent || 0)
+      }
+      console.log('StatusDock: Setting metrics to:', newMetrics)
+      setMetrics(newMetrics)
+      
+    } catch (err) {
+      console.error('StatusDock: Fetch error:', err)
+      setError(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Update metrics when data changes
   useEffect(() => {
+    console.log('StatusDock: metricsData received:', metricsData)
+    console.log('StatusDock: loading:', loading, 'error:', error)
+    
     if (metricsData) {
-      setMetrics({
-        cpu: metricsData.cpu?.percent || 0,
-        memory: metricsData.memory?.percent || 0,
-        disk: metricsData.disk?.percent || 0
-      })
+      // Force update with real data - prioritize flat fields
+      const newMetrics = {
+        cpu: Math.round(metricsData.cpu_percent || 0),
+        memory: Math.round(metricsData.memory_percent || 0),
+        disk: Math.round(metricsData.disk_percent || 0)
+      }
+      console.log('StatusDock: setting metrics to:', newMetrics)
+      setMetrics(newMetrics)
+    } else {
+      console.log('StatusDock: No metrics data available')
+      // Set fallback values for debugging
+      setMetrics({ cpu: 0, memory: 0, disk: 0 })
     }
-  }, [metricsData])
+  }, [metricsData, loading, error])
 
-  // Smart polling - pause when tab is not visible
+  // Auto-fetch on mount and set up polling
   useEffect(() => {
+    // Initial fetch
+    fetchMetrics()
+    
+    // Set up polling every 10 seconds
+    const interval = setInterval(fetchMetrics, 10000)
+    
+    // Smart polling - pause when tab is not visible
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Tab is hidden, pause polling
+        clearInterval(interval)
       } else {
         // Tab is visible, resume polling
-        refresh()
+        fetchMetrics()
+        setInterval(fetchMetrics, 10000)
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [refresh])
+    
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
 
   const getStatusColor = (percent) => {
     if (percent < 50) return 'text-neon-emerald'
@@ -118,7 +166,7 @@ const StatusDock = () => {
                 <div className="hidden sm:block">
                   <div className="text-xs text-dark-muted font-medium">{item.label}</div>
                   <div className={`text-sm font-bold ${item.color} font-mono`}>
-                    {item.value}
+                    {loading ? '...' : error ? 'ERR' : item.value}
                   </div>
                 </div>
 
@@ -130,6 +178,20 @@ const StatusDock = () => {
             )
           })}
 
+          {/* Debug refresh button */}
+          <motion.button
+            onClick={() => {
+              console.log('Manual refresh clicked')
+              fetchMetrics()
+            }}
+            className="hidden lg:flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 hover:bg-neon-cyan/20 rounded-lg transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Activity className="w-4 h-4 text-neon-cyan" />
+            <span className="text-xs text-neon-cyan font-mono">Refresh</span>
+          </motion.button>
+
           {/* Time/Date */}
           <motion.div
             className="hidden xl:flex items-center gap-2 pl-4 border-l border-dark-border"
@@ -137,7 +199,6 @@ const StatusDock = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Activity className="w-4 h-4 text-neon-cyan" />
             <div className="text-sm font-mono text-dark-text">
               {new Date().toLocaleTimeString('de-DE', { 
                 hour: '2-digit', 

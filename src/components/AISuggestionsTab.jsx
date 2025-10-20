@@ -18,26 +18,25 @@ const AISuggestionsTab = ({ scanResult }) => {
     setError(null)
     
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/optimize', {
+      const response = await fetch('http://127.0.0.1:5175/api/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scan_id: 'latest',
-          user_preferences: {
-            risk_tolerance: 'low',
-            focus_areas: ['temp_files', 'duplicates', 'large_files']
-          }
+          query: 'Generate optimization suggestions for system cleanup'
         })
       })
 
       if (response.ok) {
         const data = await response.json()
-        const actions = data.actions || []
-        setSuggestions(actions)
+        const suggestions = data.suggestions || []
+        setSuggestions(suggestions)
         
-        // Validate against policy
-        if (actions.length > 0) {
-          await validateActionPlan({ actions })
+        // Log LLM usage status
+        if (data.llm_used) {
+          console.log('AI suggestions generated using LLM')
+        } else {
+          console.log('AI suggestions generated using rule-based fallback')
         }
       } else {
         setError('Failed to generate AI suggestions')
@@ -56,24 +55,33 @@ const AISuggestionsTab = ({ scanResult }) => {
     const results = []
 
     try {
-      for (const actionIndex of selectedActions) {
-        const action = suggestions[actionIndex]
+      for (const suggestionIndex of selectedActions) {
+        const suggestion = suggestions[suggestionIndex]
         
-        const response = await fetch('http://127.0.0.1:5174/api/action', {
+        const response = await fetch('http://127.0.0.1:5175/api/suggestions/execute', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action_type: action.action,
-            target_path: action.target,
-            destination: action.dest || undefined
+            suggestion_id: suggestion.id,
+            actions: suggestion.actions || []
           })
         })
 
         if (response.ok) {
           const result = await response.json()
-          results.push({ success: true, action: action.action, result })
+          results.push({ 
+            success: result.success, 
+            suggestion: suggestion.title, 
+            executed: result.total_executed,
+            failed: result.total_failed,
+            result 
+          })
         } else {
-          results.push({ success: false, action: action.action, error: 'Failed to execute' })
+          results.push({ 
+            success: false, 
+            suggestion: suggestion.title, 
+            error: 'Failed to execute suggestion' 
+          })
         }
       }
 
@@ -82,7 +90,7 @@ const AISuggestionsTab = ({ scanResult }) => {
       await generateSuggestions()
       
     } catch (err) {
-      setError('Failed to execute some actions')
+      setError('Failed to execute some suggestions')
     } finally {
       setIsExecuting(false)
     }
@@ -90,10 +98,14 @@ const AISuggestionsTab = ({ scanResult }) => {
 
   const validateActionPlan = async (plan) => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/policy/validate', {
+      const response = await fetch('http://127.0.0.1:5175/api/policy/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan })
+        body: JSON.stringify({ 
+          action_type: 'batch',
+          paths: plan.actions?.map(a => a.target) || [],
+          parameters: { batch_size: plan.actions?.length || 0 }
+        })
       })
 
       if (response.ok) {

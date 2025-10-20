@@ -19,7 +19,12 @@ const FileList = ({ files = [], selectedFiles, onFileSelect, onSelectAll }) => {
 
     // Apply type filter
     if (filter !== 'all') {
-      filtered = filtered.filter(file => file.kind === filter)
+      filtered = filtered.filter(file => {
+        const fileType = file.kind || file.type
+        if (filter === 'dir') return fileType === 'dir' || fileType === 'directory'
+        if (filter === 'file') return fileType === 'file'
+        return fileType === filter
+      })
     }
 
     // Sort files
@@ -28,20 +33,20 @@ const FileList = ({ files = [], selectedFiles, onFileSelect, onSelectAll }) => {
 
       switch (sortBy) {
         case 'size':
-          aValue = a.bytes || 0
-          bValue = b.bytes || 0
+          aValue = a.bytes || a.size || 0
+          bValue = b.bytes || b.size || 0
           break
         case 'name':
           aValue = a.path.toLowerCase()
           bValue = b.path.toLowerCase()
           break
         case 'modified':
-          aValue = a.mtime || 0
-          bValue = b.mtime || 0
+          aValue = a.mtime || (a.modified ? new Date(a.modified).getTime() / 1000 : 0)
+          bValue = b.mtime || (b.modified ? new Date(b.modified).getTime() / 1000 : 0)
           break
         default:
-          aValue = a.bytes || 0
-          bValue = b.bytes || 0
+          aValue = a.bytes || a.size || 0
+          bValue = b.bytes || b.size || 0
       }
 
       if (sortOrder === 'asc') {
@@ -64,11 +69,15 @@ const FileList = ({ files = [], selectedFiles, onFileSelect, onSelectAll }) => {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown'
+    // Handle both Unix timestamp and ISO string
+    if (typeof timestamp === 'string') {
+      return new Date(timestamp).toLocaleDateString()
+    }
     return new Date(timestamp * 1000).toLocaleDateString()
   }
 
   const getFileIcon = (file) => {
-    if (file.kind === 'dir') {
+    if (file.kind === 'dir' || file.type === 'directory') {
       return <Folder className="file-icon text-blue-500" />
     }
     
@@ -234,18 +243,18 @@ const FileList = ({ files = [], selectedFiles, onFileSelect, onSelectAll }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatBytes(file.bytes || 0)}
+                    {formatBytes(file.bytes || file.size || 0)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(file.mtime)}
+                    {formatDate(file.mtime || file.modified)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`badge ${
-                      file.kind === 'dir' ? 'badge-info' :
-                      file.kind === 'file' ? 'badge-success' :
+                      (file.kind === 'dir' || file.type === 'directory') ? 'badge-info' :
+                      (file.kind === 'file' || file.type === 'file') ? 'badge-success' :
                       'badge-warning'
                     }`}>
-                      {file.kind}
+                      {file.kind || file.type || 'unknown'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Play, FolderOpen, Trash2, Download, AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { API_CONFIG } from '../config/environment'
 
 const InstalledAppsTab = () => {
   const [apps, setApps] = useState([])
@@ -14,7 +15,7 @@ const InstalledAppsTab = () => {
 
   const loadInstalledApps = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/installer/apps')
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/installer/apps`)
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
@@ -39,7 +40,7 @@ const InstalledAppsTab = () => {
     setError('')
     
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/installer/github', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/installer/github`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -68,7 +69,7 @@ const InstalledAppsTab = () => {
 
   const handleLaunch = async (appId) => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/installer/launch', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/installer/launch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ app_id: appId })
@@ -94,7 +95,7 @@ const InstalledAppsTab = () => {
     if (!confirm(`Are you sure you want to uninstall ${appId}?`)) return
 
     try {
-      const response = await fetch(`http://127.0.0.1:5174/api/installer/app/${appId}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/installer/app/${appId}`, {
         method: 'DELETE'
       })
 

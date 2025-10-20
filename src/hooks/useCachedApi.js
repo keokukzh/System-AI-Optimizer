@@ -25,6 +25,7 @@ const useCachedApi = (url, options = {}) => {
   
   const abortControllerRef = useRef(null)
   const isMountedRef = useRef(true)
+  const cleanupRef = useRef(false)
 
   // Get cache configuration
   const finalCacheKey = cacheKey || cacheHelpers.getCacheKey(endpoint, apiOptions.params)
@@ -38,9 +39,9 @@ const useCachedApi = (url, options = {}) => {
       if (abortControllerRef.current) {
         try {
           abortControllerRef.current.abort()
-        } catch (error) {
-          // Ignore abort errors during cleanup
-          console.debug('AbortController cleanup:', error.message)
+        } catch (err) {
+          // Ignore any abort errors during cleanup
+          console.debug('Cleanup abort error:', err)
         }
       }
     }
@@ -48,7 +49,13 @@ const useCachedApi = (url, options = {}) => {
 
   // Execute API call with caching
   const execute = useCallback(async (customOptions = {}) => {
+    console.log(`useCachedApi: execute called for ${url}`)
     if (!isMountedRef.current) return
+    
+    // Reset abort controller
+    if (abortControllerRef.current?.signal.aborted) {
+      abortControllerRef.current = new AbortController()
+    }
 
     // Check cache first
     if (shouldCache) {
@@ -94,6 +101,10 @@ const useCachedApi = (url, options = {}) => {
           return result
         } catch (err) {
           if (isMountedRef.current) {
+            // Handle AbortError gracefully
+            if (err.name === 'AbortError') {
+              return // Don't treat abort as an error
+            }
             setError(err)
           }
           throw err
@@ -111,11 +122,9 @@ const useCachedApi = (url, options = {}) => {
 
     // Cleanup previous request
     if (abortControllerRef.current) {
-      try {
+      // Check if already aborted before attempting to abort
+      if (!abortControllerRef.current.signal.aborted) {
         abortControllerRef.current.abort()
-      } catch (error) {
-        // Ignore abort errors during cleanup
-        console.debug('AbortController cleanup in fetchData:', error.message)
       }
     }
 
@@ -135,21 +144,21 @@ const useCachedApi = (url, options = {}) => {
         signal: abortControllerRef.current.signal
       }
 
-      // Create request promise
-      const requestPromise = fetch(url, requestOptions)
+      console.log(`useCachedApi: making fetch request to ${url}`)
+      const response = await fetch(url, requestOptions)
+      console.log(`useCachedApi: fetch response status: ${response.status}`)
       
       // Add to deduplicator if enabled
       if (deduplicate && !isBackground) {
-        requestDeduplicator.addPendingRequest(finalCacheKey, requestPromise)
+        requestDeduplicator.addPendingRequest(finalCacheKey, Promise.resolve(response.clone()))
       }
-
-      const response = await requestPromise
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
       const responseData = await response.json()
+      console.log(`useCachedApi: received data:`, responseData)
 
       if (!isMountedRef.current) return
 
@@ -158,10 +167,14 @@ const useCachedApi = (url, options = {}) => {
         apiCache.set(finalCacheKey, responseData, finalTTL)
       }
 
+      console.log(`useCachedApi: setting data:`, responseData)
       setData(responseData)
       setFromCache(false)
       setError(null)
       setLastFetch(Date.now())
+      if (!isBackground) {
+        setLoading(false)
+      }
 
       if (onCacheMiss && !isBackground) {
         onCacheMiss(responseData)
@@ -171,12 +184,21 @@ const useCachedApi = (url, options = {}) => {
     } catch (err) {
       if (!isMountedRef.current) return
 
-      // Don't set error for aborted requests
-      if (err.name !== 'AbortError') {
-        setError(err)
-        if (!isBackground) {
-          setLoading(false)
-        }
+      // Clear loading state on error
+      if (!isBackground) {
+        setLoading(false)
+      }
+
+      // Handle AbortError gracefully - don't treat it as an error
+      if (err.name === 'AbortError') {
+        // Request was aborted, this is expected behavior
+        return
+      }
+
+      // Handle other errors
+      setError(err)
+      if (!isBackground) {
+        setLoading(false)
       }
 
       throw err
@@ -189,7 +211,7 @@ const useCachedApi = (url, options = {}) => {
 
   // Cancel current request
   const cancel = useCallback(() => {
-    if (abortControllerRef.current) {
+    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
       abortControllerRef.current.abort()
     }
     setLoading(false)
@@ -198,7 +220,7 @@ const useCachedApi = (url, options = {}) => {
 
   // Reset state
   const reset = useCallback(() => {
-    if (abortControllerRef.current) {
+    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
       abortControllerRef.current.abort()
     }
     setData(null)
@@ -242,10 +264,16 @@ const useCachedApi = (url, options = {}) => {
     }
   }, [shouldCache, finalCacheKey])
 
-  // Auto-fetch on mount if immediate is true
+  // Auto-fetch on mount with stagger to prevent race conditions
   useEffect(() => {
     if (apiOptions.immediate !== false) {
-      execute()
+      // Add small delay to stagger multiple component mounts
+      const delay = Math.random() * 100 // 0-100ms random delay
+      const timer = setTimeout(() => {
+        execute()
+      }, delay)
+      
+      return () => clearTimeout(timer)
     }
   }, [execute, apiOptions.immediate])
 

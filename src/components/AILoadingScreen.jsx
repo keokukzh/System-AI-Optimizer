@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Brain, Loader2, CheckCircle, AlertTriangle } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Brain, Loader2, CheckCircle, AlertTriangle, SkipForward, RefreshCw } from 'lucide-react'
+import { API_CONFIG } from '../config/environment'
 
 const AILoadingScreen = ({ onComplete, onError }) => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -9,6 +10,11 @@ const AILoadingScreen = ({ onComplete, onError }) => {
     fallback_mode: false,
     last_error: null
   })
+  const [isSkipped, setIsSkipped] = useState(false)
+  const [showSkipButton, setShowSkipButton] = useState(false)
+  const [timeoutReached, setTimeoutReached] = useState(false)
+  const abortControllerRef = useRef(null)
+  const timeoutRef = useRef(null)
 
   const steps = [
     { id: 'checking', label: 'Checking AI availability...', icon: Loader2 },
@@ -18,18 +24,97 @@ const AILoadingScreen = ({ onComplete, onError }) => {
   ]
 
   useEffect(() => {
+    // Show skip button after 3 seconds
+    const skipTimer = setTimeout(() => {
+      setShowSkipButton(true)
+    }, 3000)
+
+    // Set overall timeout for 10 seconds
+    timeoutRef.current = setTimeout(() => {
+      setTimeoutReached(true)
+      handleTimeout()
+    }, 10000)
+
     initializeAI()
+    
+    return () => {
+      clearTimeout(skipTimer)
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      // Cleanup abort controller
+      if (abortControllerRef.current) {
+        try {
+          abortControllerRef.current.abort()
+        } catch (error) {
+          // Ignore abort errors during cleanup
+          console.debug('AbortController cleanup:', error.message)
+        }
+      }
+    }
   }, [])
+
+  const handleTimeout = () => {
+    console.warn('AI initialization timeout reached')
+    const fallbackStatus = {
+      available: false,
+      model_loaded: false,
+      fallback_mode: true,
+      last_error: 'Initialization timeout - using fallback mode'
+    }
+    setAiStatus(fallbackStatus)
+    setCurrentStep(3) // Mark as complete
+    if (onComplete) {
+      onComplete(fallbackStatus)
+    }
+  }
+
+  const handleSkip = () => {
+    setIsSkipped(true)
+    console.log('AI initialization skipped by user')
+    const fallbackStatus = {
+      available: false,
+      model_loaded: false,
+      fallback_mode: true,
+      last_error: 'Skipped by user - using fallback mode'
+    }
+    setAiStatus(fallbackStatus)
+    setCurrentStep(3) // Mark as complete
+    if (onComplete) {
+      onComplete(fallbackStatus)
+    }
+  }
+
+  const handleRetry = () => {
+    setCurrentStep(0)
+    setIsSkipped(false)
+    setTimeoutReached(false)
+    setShowSkipButton(false)
+    setAiStatus({
+      available: false,
+      model_loaded: false,
+      fallback_mode: false,
+      last_error: null
+    })
+    initializeAI()
+  }
 
   const initializeAI = async () => {
     try {
+      // Create abort controller
+      abortControllerRef.current = new AbortController()
+
       // Step 1: Check AI status
       setCurrentStep(0)
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate check time
       
-      const statusResponse = await fetch('http://127.0.0.1:5174/api/ai/status')
+      const statusResponse = await fetch(`${API_CONFIG.BASE_URL}/api/ai/status`, {
+        signal: abortControllerRef.current.signal,
+        timeout: API_CONFIG.TIMEOUT
+      })
+      
       if (!statusResponse.ok) {
-        throw new Error('Failed to check AI status')
+        throw new Error(`Failed to check AI status: ${statusResponse.status}`)
       }
       
       const status = await statusResponse.json()
@@ -40,12 +125,14 @@ const AILoadingScreen = ({ onComplete, onError }) => {
         setCurrentStep(1)
         await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate loading time
         
-        const initResponse = await fetch('http://127.0.0.1:5174/api/ai/init', {
-          method: 'POST'
+        const initResponse = await fetch(`${API_CONFIG.BASE_URL}/api/ai/init`, {
+          method: 'POST',
+          signal: abortControllerRef.current.signal,
+          timeout: API_CONFIG.TIMEOUT
         })
         
         if (!initResponse.ok) {
-          throw new Error('Failed to initialize AI model')
+          throw new Error(`Failed to initialize AI model: ${initResponse.status}`)
         }
       }
 
@@ -62,9 +149,20 @@ const AILoadingScreen = ({ onComplete, onError }) => {
       }
 
     } catch (error) {
-      console.error('AI initialization failed:', error)
-      if (onError) {
-        onError(error)
+      // Don't log AbortError as it's expected during cleanup
+      if (error.name !== 'AbortError') {
+        console.error('AI initialization failed:', error)
+        const errorStatus = {
+          available: false,
+          model_loaded: false,
+          fallback_mode: true,
+          last_error: error.message || 'Connection failed'
+        }
+        setAiStatus(errorStatus)
+        setCurrentStep(3) // Mark as complete even on error
+        if (onComplete) {
+          onComplete(errorStatus)
+        }
       }
     }
   }
@@ -143,6 +241,29 @@ const AILoadingScreen = ({ onComplete, onError }) => {
             <p className="text-xs text-dark-muted mt-2 text-center">
               {Math.round(((currentStep + 1) / steps.length) * 100)}% complete
             </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-6 flex justify-center gap-3">
+            {showSkipButton && !isSkipped && !timeoutReached && (
+              <button
+                onClick={handleSkip}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20 text-yellow-400 rounded-lg hover:bg-yellow-600/30 border border-yellow-500/30 transition-all duration-200 font-medium text-sm"
+              >
+                <SkipForward className="w-4 h-4" />
+                Skip
+              </button>
+            )}
+            
+            {(timeoutReached || aiStatus.last_error) && (
+              <button
+                onClick={handleRetry}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 border border-blue-500/30 transition-all duration-200 font-medium text-sm"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Retry
+              </button>
+            )}
           </div>
 
           {aiStatus.fallback_mode && (

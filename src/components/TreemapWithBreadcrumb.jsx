@@ -81,7 +81,9 @@ const TreemapWithBreadcrumb = ({ data, onNodeClick }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
             {current.children.map((node, index) => {
               const hasChildren = node.children && node.children.length > 0
-              const sizePercent = (node.size / current.children.reduce((sum, n) => sum + n.size, 0)) * 100
+              const nodeSize = node.size || node.bytes || 0
+              const totalSize = current.children.reduce((sum, n) => sum + (n.size || n.bytes || 0), 0)
+              const sizePercent = totalSize > 0 ? (nodeSize / totalSize) * 100 : 0
               
               return (
                 <div
@@ -108,7 +110,7 @@ const TreemapWithBreadcrumb = ({ data, onNodeClick }) => {
                     </div>
                     
                     <div className="text-xs opacity-90">
-                      {formatBytes(node.size)}
+                      {formatBytes(nodeSize)}
                     </div>
                     
                     {sizePercent >= 2 && (
@@ -122,7 +124,7 @@ const TreemapWithBreadcrumb = ({ data, onNodeClick }) => {
                   {sizePercent < 2 && (
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <div className="bg-black/80 text-white text-xs px-2 py-1 rounded">
-                        {node.name}: {formatBytes(node.size)}
+                        {node.name}: {formatBytes(nodeSize)}
                       </div>
                     </div>
                   )}

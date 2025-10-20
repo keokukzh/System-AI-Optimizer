@@ -20,10 +20,9 @@ interface ProcessInfo {
   pid: number
   name: string
   cpu_percent: number
-  memory_percent: number
-  memory_mb: number
+  memory: number  // Backend uses 'memory' in bytes
   status: string
-  create_time: number
+  create_time?: number
   username?: string
 }
 
@@ -61,12 +60,13 @@ const Processes: React.FC = () => {
   // Fetch processes
   const fetchProcesses = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/process/list')
+      const response = await fetch('http://127.0.0.1:5175/api/processes')
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      setProcesses(data)
+      // Backend returns { processes: [...], total: 321 }
+      setProcesses(data.processes || data)
       setError(null)
     } catch (err) {
       setError(`Failed to fetch processes: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -76,16 +76,25 @@ const Processes: React.FC = () => {
   // Fetch stats
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/process/stats')
+      const response = await fetch('http://127.0.0.1:5175/api/metrics')
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      setStats(data)
+      // Convert metrics to process stats format
+      setStats({
+        total_processes: processes.length,
+        cpu_count: data.cpu_count || 8,
+        cpu_percent: data.cpu_percent || 0,
+        memory_total_gb: data.memory_total_gb || 16,
+        memory_used_gb: data.memory_used_gb || 8,
+        memory_percent: data.memory_percent || 50,
+        protected_processes: 0
+      })
     } catch (err) {
       console.error('Failed to fetch process stats:', err)
     }
-  }, [])
+  }, [processes.length])
 
   // Auto-refresh processes
   useEffect(() => {
@@ -364,12 +373,12 @@ const Processes: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getUsageColor(process.memory_percent, 'memory')}`}>
-                      {process.memory_percent.toFixed(1)}%
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getUsageColor(0, 'memory')}`}>
+                      N/A
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {process.memory_mb.toFixed(1)}
+                    {(process.memory / 1024 / 1024).toFixed(1)} MB
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {process.status}

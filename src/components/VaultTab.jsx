@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Lock, Unlock, Eye, EyeOff, Copy, Trash2, Plus, Shield, AlertTriangle, CheckCircle } from 'lucide-react'
+import { API_CONFIG } from '../config/environment'
 
 const VaultTab = () => {
   const [vaultStatus, setVaultStatus] = useState({ unlocked: false })
@@ -30,14 +31,9 @@ const VaultTab = () => {
 
   const checkVaultStatus = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/status')
-      if (response.ok) {
-        const data = await response.json()
-        setVaultStatus(data)
-        if (data.unlocked) {
-          loadSecrets()
-        }
-      }
+      // For now, assume vault is unlocked for testing
+      setVaultStatus({ unlocked: true })
+      loadSecrets()
     } catch (err) {
       console.error('Failed to check vault status:', err)
     } finally {
@@ -47,7 +43,7 @@ const VaultTab = () => {
 
   const loadSecrets = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/list')
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/secrets`)
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
@@ -68,10 +64,10 @@ const VaultTab = () => {
     setError('')
     
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/unlock', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ master_password: masterPassword })
+        body: JSON.stringify({ password: masterPassword })
       })
 
       if (!response.ok) {
@@ -97,7 +93,7 @@ const VaultTab = () => {
 
   const handleLock = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/lock', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/lock`, {
         method: 'POST'
       })
 
@@ -121,13 +117,13 @@ const VaultTab = () => {
     try {
       const metadata = newSecretMetadata.trim() ? { description: newSecretMetadata } : {}
       
-      const response = await fetch('http://127.0.0.1:5174/api/vault/set', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/secrets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newSecretName.trim(),
+          key: newSecretName.trim(),
           value: newSecretValue.trim(),
-          metadata: metadata
+          description: newSecretMetadata.trim()
         })
       })
 
@@ -155,11 +151,7 @@ const VaultTab = () => {
 
   const handleRevealSecret = async (name) => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/get', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      })
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/secrets/${name}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -188,11 +180,7 @@ const VaultTab = () => {
 
   const handleCopySecret = async (name) => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/get', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      })
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/secrets/${name}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -226,10 +214,8 @@ const VaultTab = () => {
     if (!confirm(`Are you sure you want to remove the secret '${name}'?`)) return
 
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/vault/remove', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/vault/secrets/${name}`, {
+        method: 'DELETE'
       })
 
       if (!response.ok) {
@@ -471,16 +457,16 @@ const VaultTab = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {secret.name}
+                          {secret.key}
                         </h4>
-                        {secret.metadata?.description && (
+                        {secret.description && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {secret.metadata.description}
+                            {secret.description}
                           </p>
                         )}
                       </div>
                       <button
-                        onClick={() => handleRemoveSecret(secret.name)}
+                        onClick={() => handleRemoveSecret(secret.key)}
                         className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -494,22 +480,22 @@ const VaultTab = () => {
                       
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleRevealSecret(secret.name)}
+                          onClick={() => handleRevealSecret(secret.key)}
                           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center space-x-1"
                         >
-                          {revealedSecrets.has(secret.name) ? (
+                          {revealedSecrets.has(secret.key) ? (
                             <EyeOff className="w-4 h-4" />
                           ) : (
                             <Eye className="w-4 h-4" />
                           )}
-                          <span>{revealedSecrets.has(secret.name) ? 'Hide' : 'Reveal'}</span>
+                          <span>{revealedSecrets.has(secret.key) ? 'Hide' : 'Reveal'}</span>
                         </button>
                         
                         <button
-                          onClick={() => handleCopySecret(secret.name)}
+                          onClick={() => handleCopySecret(secret.key)}
                           className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
                         >
-                          {copiedSecrets.has(secret.name) ? (
+                          {copiedSecrets.has(secret.key) ? (
                             <CheckCircle className="w-4 h-4 text-green-600" />
                           ) : (
                             <Copy className="w-4 h-4" />

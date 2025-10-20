@@ -58,7 +58,7 @@ All actions must be validated through the policy system defined in `policy.yaml`
 
 **UI System**: Tailwind CSS + Framer Motion for animations
 
-API communication via fetch to `http://127.0.0.1:5174` (backend server port).
+API communication via fetch to `http://127.0.0.1:5175` (backend server port - standardized).
 
 ## Development Commands
 
@@ -73,11 +73,11 @@ make dev
 
 ### Backend Development
 ```bash
-# Activate venv and start backend server (port 5174)
+# Activate venv and start backend server (port 5175)
 cd backend
 .venv\Scripts\activate  # Windows
 source .venv/bin/activate  # Unix/macOS
-uvicorn main:app --reload --port 5174
+uvicorn main:app --reload --port 5175
 ```
 
 ### Frontend Development
@@ -193,7 +193,7 @@ External tools with graceful fallback if not installed:
 ## Configuration & Ports
 
 **Port Configuration**:
-- Backend API: `5174`
+- Backend API: `5175` (standardized)
 - Frontend Vite dev: `3001` (see `vite.config.js`)
 - Tauri dev: Dynamic assignment
 - Ollama LLM: `11434`
@@ -202,6 +202,8 @@ External tools with graceful fallback if not installed:
 - `http://localhost:1420` (Tauri)
 - `http://localhost:3001` (Vite dev server)
 - `http://localhost:5173` (Vite default)
+- `http://localhost:5174` (Vite production)
+- `http://localhost:5175` (Backend self-reference)
 - `tauri://localhost` (Tauri protocol)
 
 ## Important Development Constraints

@@ -4,7 +4,7 @@ import { validateScanPath, validateProcessId, sanitizeInput } from '../utils/val
 
 describe('Validation Utils', () => {
   it('should validate scan paths correctly', () => {
-    const validPath = '/home/user/documents'
+    const validPath = 'C:\\Users\\Documents'
     const invalidPath = '/Windows/System32'
     
     const validResult = validateScanPath(validPath)

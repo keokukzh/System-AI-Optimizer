@@ -16,18 +16,18 @@ const ActionHistory = ({ onShowToast }) => {
       setIsLoading(true)
       
       const [historyResponse, undoableResponse] = await Promise.all([
-        fetch('http://127.0.0.1:5174/api/actions/history'),
-        fetch('http://127.0.0.1:5174/api/actions/undoable')
+        fetch('http://127.0.0.1:5175/api/actions/history'),
+        fetch('http://127.0.0.1:5175/api/actions/undoable')
       ])
 
       if (historyResponse.ok) {
         const historyData = await historyResponse.json()
-        setHistory(historyData)
+        setHistory(historyData.actions || [])
       }
 
       if (undoableResponse.ok) {
         const undoableData = await undoableResponse.json()
-        setUndoableActions(undoableData)
+        setUndoableActions(undoableData.undoable_actions || [])
       }
     } catch (error) {
       console.error('Failed to load action history:', error)
@@ -41,7 +41,7 @@ const ActionHistory = ({ onShowToast }) => {
     try {
       setIsUndoing(true)
       
-      const response = await fetch('http://127.0.0.1:5174/api/undo', {
+      const response = await fetch('http://127.0.0.1:5175/api/undo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action_id: actionId })

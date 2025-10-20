@@ -7,6 +7,10 @@ use commands::{AppState, *};
 use tauri::Manager;
 use std::env;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+use std::process::{Child, Command};
+use std::thread;
+use std::time::Duration;
 
 fn main() {
     // Initialize logger
@@ -27,13 +31,24 @@ fn main() {
         }
     };
 
+    // Backend process management
+    let backend_process: Arc<Mutex<Option<Child>>> = Arc::new(Mutex::new(None));
+
     tauri::Builder::default()
         .manage(app_state)
+        .manage(backend_process.clone())
         .setup(|app| {
             #[cfg(debug_assertions)]
             {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
+            }
+
+            // Start backend server
+            let backend_process_state: tauri::State<Arc<Mutex<Option<Child>>>> = app.state();
+            if let Err(e) = start_backend_server(backend_process_state.inner()) {
+                eprintln!("Failed to start backend server: {}", e);
+                // Continue without backend - app will show error in UI
             }
 
             // Check if this is the first run
@@ -92,6 +107,75 @@ fn main() {
             get_log_stats,
             clear_logs
         ])
+        .on_window_event(|event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event.event() {
+                // Clean up backend process when window closes
+                if let Some(app) = event.window().app_handle().try_state::<Arc<Mutex<Option<Child>>>>() {
+                    stop_backend_server(app.inner());
+                }
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Start the backend server as a sidecar process
+fn start_backend_server(backend_process: &Arc<Mutex<Option<Child>>>) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Starting backend server...");
+    
+    // Try to start the backend-server sidecar
+    let mut cmd = Command::new("backend-server");
+    cmd.arg("--port").arg("5175");
+    cmd.arg("--host").arg("127.0.0.1");
+    
+    match cmd.spawn() {
+        Ok(child) => {
+            println!("Backend server started with PID: {:?}", child.id());
+            
+            // Store the process handle
+            let mut process_guard = backend_process.lock().unwrap();
+            *process_guard = Some(child);
+            drop(process_guard);
+            
+            // Wait a moment for the server to start
+            thread::sleep(Duration::from_secs(2));
+            
+            // Verify the server is running by checking health endpoint
+            if verify_backend_health().is_ok() {
+                println!("Backend server is healthy");
+                Ok(())
+            } else {
+                println!("Backend server started but health check failed");
+                Ok(()) // Continue anyway, UI will handle the error
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to start backend server: {}", e);
+            Err(Box::new(e))
+        }
+    }
+}
+
+/// Verify backend server health
+fn verify_backend_health() -> Result<(), Box<dyn std::error::Error>> {
+    use std::net::TcpStream;
+    
+    // Try to connect to the backend port
+    match TcpStream::connect("127.0.0.1:5175") {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Box::new(e))
+    }
+}
+
+/// Stop the backend server
+fn stop_backend_server(backend_process: &Arc<Mutex<Option<Child>>>) {
+    let mut process_guard = backend_process.lock().unwrap();
+    if let Some(mut child) = process_guard.take() {
+        println!("Stopping backend server...");
+        if let Err(e) = child.kill() {
+            eprintln!("Failed to kill backend server: {}", e);
+        } else {
+            println!("Backend server stopped");
+        }
+    }
 }

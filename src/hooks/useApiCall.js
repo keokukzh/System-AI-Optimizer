@@ -1,18 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { categorizeError, getUserFriendlyMessage, getRetryDelay, logError, isRetryable } from '../utils/errorHandler'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
- * useApiCall - Unified API call hook with retry logic, timeout, and cancellation
- * Provides consistent error handling and loading states across the app
+ * useApiCall - Simple API call hook with proper error handling
+ * Provides loading states, error handling, and request cancellation
  */
 const useApiCall = (url, options = {}) => {
   const {
-    method = 'GET',
-    headers = {},
-    body = null,
-    retries = 3,
-    retryDelay = 1000,
-    timeout = 10000,
     immediate = true,
     onSuccess = null,
     onError = null,
@@ -22,164 +15,126 @@ const useApiCall = (url, options = {}) => {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [retryCount, setRetryCount] = useState(0)
+  const [lastFetch, setLastFetch] = useState(null)
   
   const abortControllerRef = useRef(null)
-  const timeoutRef = useRef(null)
-  const retryTimeoutRef = useRef(null)
+  const isMountedRef = useRef(true)
 
-  // Cleanup function
-  const cleanup = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current)
-      retryTimeoutRef.current = null
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+      if (abortControllerRef.current) {
+        try {
+          abortControllerRef.current.abort()
+        } catch (error) {
+          // Ignore abort errors during cleanup
+          console.debug('AbortController cleanup:', error.message)
+        }
+      }
     }
   }, [])
 
   // Execute API call
   const execute = useCallback(async (customOptions = {}) => {
+    if (!isMountedRef.current) return
+
     // Cleanup previous request
-    cleanup()
-    
-    setLoading(true)
-    setError(null)
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort()
+      } catch (error) {
+        // Ignore abort errors during cleanup
+        console.debug('AbortController cleanup in execute:', error.message)
+      }
+    }
 
     // Create new abort controller
     abortControllerRef.current = new AbortController()
-    
-    // Merge options
-    const finalOptions = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-        ...customOptions.headers
-      },
-      body: body ? JSON.stringify(body) : null,
-      signal: abortControllerRef.current.signal,
-      ...fetchOptions,
-      ...customOptions
-    }
 
-    // Set timeout
-    timeoutRef.current = setTimeout(() => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }, timeout)
+    setLoading(true)
+    setError(null)
 
     try {
-      const response = await fetch(url, finalOptions)
-      
-      // Clear timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
+      const requestOptions = {
+        ...fetchOptions,
+        ...customOptions,
+        signal: abortControllerRef.current.signal
       }
+
+      const response = await fetch(url, requestOptions)
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
       const responseData = await response.json()
+
+      if (!isMountedRef.current) return
+
       setData(responseData)
-      setRetryCount(0)
-      
+      setError(null)
+      setLastFetch(Date.now())
+
       if (onSuccess) {
         onSuccess(responseData)
       }
 
       return responseData
     } catch (err) {
-      // Clear timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
+      if (!isMountedRef.current) return
 
-      // Don't retry if request was aborted or cancelled
-      if (err.name === 'AbortError') {
-        setLoading(false)
-        return
-      }
-
-      // Log error for debugging
-      logError(err, { url, method, retryCount })
-      
-      const currentRetryCount = retryCount
-      
-      // Check if error is retryable and we haven't exceeded max retries
-      if (isRetryable(err) && currentRetryCount < retries) {
-        // Use smart retry delay based on error type
-        const delay = getRetryDelay(err, currentRetryCount)
-        setRetryCount(prev => prev + 1)
-        
-        retryTimeoutRef.current = setTimeout(() => {
-          execute(customOptions)
-        }, delay)
-      } else {
-        // Max retries reached or error is not retryable
-        const enhancedError = {
-          ...err,
-          userFriendlyMessage: getUserFriendlyMessage(err),
-          errorType: categorizeError(err).type,
-          severity: categorizeError(err).severity,
-          retryCount: currentRetryCount
-        }
-        
-        setError(enhancedError)
-        setLoading(false)
-        
+      // Don't set error for aborted requests
+      if (err.name !== 'AbortError') {
+        setError(err)
         if (onError) {
-          onError(enhancedError)
+          onError(err)
         }
+      }
+
+      throw err
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false)
       }
     }
-  }, [url, method, headers, body, retries, retryDelay, timeout, retryCount, onSuccess, onError, cleanup])
+  }, [url, fetchOptions, onSuccess, onError])
 
   // Cancel current request
   const cancel = useCallback(() => {
-    cleanup()
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
     setLoading(false)
     setError(null)
-  }, [cleanup])
+  }, [])
 
   // Reset state
   const reset = useCallback(() => {
-    cleanup()
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
     setData(null)
     setLoading(false)
     setError(null)
-    setRetryCount(0)
-  }, [cleanup])
+    setLastFetch(null)
+  }, [])
 
-  // Execute immediately if requested
+  // Auto-fetch on mount if immediate is true
   useEffect(() => {
-    if (immediate && url) {
+    if (immediate) {
       execute()
     }
-
-    // Cleanup on unmount
-    return cleanup
-  }, [immediate, url, execute, cleanup])
+  }, [execute, immediate])
 
   return {
     data,
     loading,
     error,
-    retryCount,
+    lastFetch,
     execute,
     cancel,
-    reset,
-    isRetrying: retryCount > 0 && retryCount <= retries
+    reset
   }
 }
 

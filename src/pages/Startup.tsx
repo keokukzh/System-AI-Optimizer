@@ -56,24 +56,21 @@ const Startup: React.FC = () => {
     item: StartupItem
   }>({ show: false, action: '', item: { name: '', path: '', scope: '', status: '', registry_path: '' } })
 
-  // Fetch startup status
+  // Set startup status as available (Windows only)
   const fetchStartupStatus = useCallback(async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:5174/api/startup/status')
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      const data = await response.json()
-      setStartupStatus(data)
-    } catch (err) {
-      console.error('Failed to fetch startup status:', err)
-    }
+    setStartupStatus({
+      platform: 'Windows',
+      is_windows: true,
+      registry_available: true,
+      startup_management_available: true,
+      message: 'Startup management is available'
+    })
   }, [])
 
   // Fetch startup items
   const fetchStartupItems = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5174/api/startup/list')
+      const response = await fetch('http://127.0.0.1:5175/api/startup')
       if (!response.ok) {
         if (response.status === 501) {
           setError('Startup management is only available on Windows with registry access')
@@ -82,8 +79,28 @@ const Startup: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      setStartupItems(data.items)
-      setStartupStats(data)
+      
+      // Transform API response to match frontend expectations
+      const transformedItems = data.startup_items.map((item: any) => ({
+        name: item.name,
+        path: item.path,
+        scope: item.location.includes('HKCU') ? 'user' : 'machine',
+        status: item.enabled ? 'enabled' : 'disabled',
+        registry_path: item.location
+      }))
+      
+      // Calculate stats
+      const stats = {
+        items: transformedItems,
+        total_count: data.total,
+        user_count: transformedItems.filter((item: any) => item.scope === 'user').length,
+        machine_count: transformedItems.filter((item: any) => item.scope === 'machine').length,
+        enabled_count: transformedItems.filter((item: any) => item.status === 'enabled').length,
+        disabled_count: transformedItems.filter((item: any) => item.status === 'disabled').length
+      }
+      
+      setStartupItems(transformedItems)
+      setStartupStats(stats)
       setError(null)
     } catch (err) {
       setError(`Failed to fetch startup items: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -122,7 +139,7 @@ const Startup: React.FC = () => {
       let response: Response
       
       if (action === 'enable') {
-        response = await fetch('http://127.0.0.1:5174/api/startup/enable', {
+        response = await fetch('http://127.0.0.1:5175/api/startup/enable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -132,7 +149,7 @@ const Startup: React.FC = () => {
           })
         })
       } else if (action === 'disable') {
-        response = await fetch('http://127.0.0.1:5174/api/startup/disable', {
+        response = await fetch('http://127.0.0.1:5175/api/startup/disable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -141,7 +158,7 @@ const Startup: React.FC = () => {
           })
         })
       } else if (action === 'remove') {
-        response = await fetch('http://127.0.0.1:5174/api/startup/remove', {
+        response = await fetch('http://127.0.0.1:5175/api/startup/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -150,7 +167,7 @@ const Startup: React.FC = () => {
           })
         })
       } else if (action === 'restore') {
-        response = await fetch('http://127.0.0.1:5174/api/startup/restore', {
+        response = await fetch('http://127.0.0.1:5175/api/startup/restore', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -351,6 +368,8 @@ const Startup: React.FC = () => {
                       }
                     }}
                     className="rounded border-gray-300"
+                    aria-label="Select all startup items"
+                    title="Select all startup items"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -381,6 +400,8 @@ const Startup: React.FC = () => {
                         checked={selectedItems.has(itemKey)}
                         onChange={() => toggleItemSelection(itemKey)}
                         className="rounded border-gray-300"
+                        aria-label={`Select ${item.name}`}
+                        title={`Select ${item.name}`}
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">

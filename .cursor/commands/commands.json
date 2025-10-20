@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "commands": {
+    "documentation": {
+      "create-architecture-documentation": {
+        "description": "Generate comprehensive architecture documentation",
+        "executor": "documentation-generator",
+        "template": "architecture",
+        "outputs": ["ARCHITECTURE.md", "diagrams/"]
+      }
+    },
+    "utilities": {
+      "ultra-think": {
+        "description": "Advanced problem analysis and solution generation",
+        "executor": "ai-thinking-engine",
+        "capabilities": ["problem-solving", "solution-design"]
+      },
+      "refactor-code": {
+        "description": "Intelligent code refactoring",
+        "executor": "code-refactorer",
+        "capabilities": ["pattern-detection", "code-improvement"]
+      },
+      "code-review": {
+        "description": "Automated code review with best practices",
+        "executor": "code-reviewer",
+        "outputs": ["review-report.md"]
+      }
+    },
+    "deployment": {
+      "add-changelog": {
+        "description": "Automated changelog management",
+        "executor": "changelog-manager",
+        "template": "conventional-commits"
+      }
+    },
+    "project-management": {
+      "todo": {
+        "description": "Intelligent task management",
+        "executor": "task-manager",
+        "capabilities": ["task-tracking", "priority-management"]
+      },
+      "create-prd": {
+        "description": "Generate product requirement documents",
+        "executor": "document-generator",
+        "template": "prd"
+      }
+    }
+  }
+}
