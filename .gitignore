@@ -54,6 +54,20 @@ Thumbs.db
 src-tauri/target/
 src-tauri/Cargo.lock
 
+# Large AI models and binaries
+*.gguf
+*.exe
+*.msi
+*.pdb
+*.rlib
+*.rmeta
+
+# Installer artifacts
+installer/setup-wizard/target/
+
+# Visual Studio
+.vs/
+
 # Logs
 *.log
 logs/
