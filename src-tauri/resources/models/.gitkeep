@@ -1,0 +1,3 @@
+# This directory is for AI model files (.gguf)
+# Model files are excluded from git due to their large size
+# Run `make build-llm` to download production models

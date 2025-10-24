@@ -1,0 +1,3 @@
+# This directory is for compiled sidecar executables
+# Executables are excluded from git and built during the build process
+# Run `make build-backend` to build the backend server sidecar
