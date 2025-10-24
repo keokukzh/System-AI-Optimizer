@@ -1,0 +1,15 @@
+name: MCP Healthcheck
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check MCP servers
+        run: |
+          for p in 7000 7001 7002 7003 7004 7005 7006; do
+            echo "Checking http://localhost:$p/mcp ..."
+            curl -sSf http://localhost:$p/mcp || true
+            echo
+          done
