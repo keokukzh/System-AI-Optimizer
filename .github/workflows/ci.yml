@@ -134,7 +134,7 @@ jobs:
       run: cd src-tauri && cargo tauri build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v5
       with:
         name: optiai-${{ matrix.os }}
         path: |
