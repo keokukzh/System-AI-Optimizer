@@ -1,0 +1,65 @@
+# CODEOWNERS for OptiAI
+# 
+# This file defines who is responsible for reviewing changes to different parts of the codebase.
+# GitHub will automatically request reviews from these users when PRs modify the specified paths.
+#
+# Syntax: path/to/file @github-username
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global/Default owners - will be requested for review on all changes
+* @keokukzh
+
+# Frontend (React/Vite)
+/src/ @keokukzh
+/public/ @keokukzh
+*.jsx @keokukzh
+*.tsx @keokukzh
+/vite.config.js @keokukzh
+/tailwind.config.js @keokukzh
+/postcss.config.js @keokukzh
+
+# Backend (Python/FastAPI)
+/backend/ @keokukzh
+*.py @keokukzh
+
+# Tauri (Rust)
+/src-tauri/ @keokukzh
+*.rs @keokukzh
+Cargo.toml @keokukzh
+
+# Installer/Setup Wizard
+/installer/ @keokukzh
+
+# Configuration Files
+/policy.yaml @keokukzh
+/schemas/ @keokukzh
+*.json @keokukzh
+
+# CI/CD and Automation
+/.github/ @keokukzh
+/.github/workflows/ @keokukzh
+/scripts/ @keokukzh
+Makefile @keokukzh
+
+# Documentation
+*.md @keokukzh
+/docs/ @keokukzh
+
+# Security and Dependencies
+SECURITY.md @keokukzh
+/backend/requirements.txt @keokukzh
+/package.json @keokukzh
+/package-lock.json @keokukzh
+
+# Build and Deploy
+Dockerfile* @keokukzh
+docker-compose*.yml @keokukzh
+
+# Testing
+/tests/ @keokukzh
+/testsprite_tests/ @keokukzh
+*.test.js @keokukzh
+*.test.jsx @keokukzh
+*.spec.js @keokukzh
+/playwright.config.js @keokukzh
+/vitest.config.js @keokukzh
