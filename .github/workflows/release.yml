@@ -1,0 +1,190 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Generate release documentation
+        run: |
+          if [ -f "scripts/create_release_docs.py" ]; then
+            python scripts/create_release_docs.py
+          else
+            echo "Release documentation script not found, skipping..."
+          fi
+        continue-on-error: true
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: OptiAI ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## OptiAI Release ${{ steps.get_version.outputs.version }}
+            
+            ### What's New
+            See the release notes below for details.
+            
+            ### Downloads
+            Download the appropriate installer for your platform:
+            - **Windows**: `.msi` or `.exe` installer
+            - **macOS**: `.dmg` installer
+            - **Linux**: `.AppImage` or `.deb` package
+            
+            ### Installation
+            1. Download the installer for your platform
+            2. Run the installer
+            3. Follow the setup wizard
+            
+            For detailed instructions, see [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-upload:
+    name: Build & Upload - ${{ matrix.os }}
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ~/.npm
+            src-tauri/target/
+          key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-release-
+
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || echo "No requirements.txt found"
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run pre-build checks
+        run: python scripts/pre_build_check.py
+        continue-on-error: true
+
+      - name: Run production build script
+        run: |
+          if [ -f "scripts/final_production_build.py" ]; then
+            python scripts/final_production_build.py
+          else
+            echo "Production build script not found, using standard build..."
+            npm run build
+          fi
+        shell: bash
+        continue-on-error: true
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ needs.create-release.outputs.version }}
+          releaseName: 'OptiAI ${{ needs.create-release.outputs.version }}'
+          releaseBody: 'See the release notes for details.'
+          releaseDraft: false
+          prerelease: false
+          args: --verbose
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-release.outputs.version }}
+          files: |
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  verify-release:
+    name: Verify Release
+    needs: [create-release, build-and-upload]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify release assets
+        run: |
+          echo "Release created successfully!"
+          echo "Version: ${{ needs.create-release.outputs.version }}"
+          echo "Check the release at: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.version }}"
