@@ -33,11 +33,23 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.next/
+.turbo/
 
 # Build outputs
 dist/
 build/
 out/
+
+# Rust/Cargo
+*.d
+Cargo.lock
+debug/
+release/
+incremental/
+*.rlib
+*.rmeta
+*.pdb
 
 # IDE
 .vscode/
@@ -58,12 +70,14 @@ src-tauri/Cargo.lock
 *.gguf
 *.exe
 *.msi
-*.pdb
-*.rlib
-*.rmeta
+*.dmg
+*.AppImage
+*.deb
 
 # Installer artifacts
 installer/setup-wizard/target/
+installer/setup-wizard/Cargo.lock
+installer/**/target/
 
 # Visual Studio
 .vs/
@@ -94,3 +108,14 @@ htmlcov/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Build reports and artifacts
+pre_build_report.json
+final_build_report.json
+release/
+*.backup
+
+# Lock files (keep only one type)
+# Keep package-lock.json as it's the standard for npm
+pnpm-lock.yaml
+yarn.lock
