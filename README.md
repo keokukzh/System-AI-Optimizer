@@ -318,6 +318,15 @@ make test
 make lint
 ```
 
+### Automated Workflows
+The repository includes automated GitHub Actions workflows:
+
+- **CI/CD Pipeline**: Runs tests, builds, and security checks on all PRs
+- **Auto-Approve**: Automatically approves and merges Dependabot PRs after CI passes
+- **Dependabot**: Weekly dependency updates for npm, pip, cargo, and GitHub Actions
+
+See [docs/AUTO_APPROVE.md](docs/AUTO_APPROVE.md) for details on the auto-approval workflow.
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
